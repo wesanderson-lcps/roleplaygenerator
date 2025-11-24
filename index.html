@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DECA Role Play Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .print-only { display: none; }
+        
+        @media print {
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            body { background: white; color: black; }
+            .role-play-container { box-shadow: none; border: none; padding: 0; }
+            /* Ensure page break happens cleanly */
+            hr { break-after: page; border: 0; } 
+        }
+
+        /* --- DECA Document Authenticity Styles --- */
+        .deca-paper {
+            font-family: 'Times New Roman', Times, serif;
+            line-height: 1.3;
+            color: #000;
+        }
+        
+        /* Official-looking Headers */
+        .deca-paper h1 { 
+            font-family: 'Arial', Helvetica, sans-serif;
+            font-size: 24px; 
+            font-weight: 900; 
+            text-transform: uppercase;
+            text-align: center;
+            margin-bottom: 2rem;
+            color: #000;
+            letter-spacing: -0.5px;
+        }
+
+        .deca-paper h2 { 
+            font-family: 'Arial', Helvetica, sans-serif;
+            font-size: 16px; 
+            font-weight: 800; 
+            text-transform: uppercase;
+            margin-top: 2rem; 
+            margin-bottom: 1rem; 
+            border-bottom: 2px solid #000; /* The distinct black bar */
+            padding-bottom: 4px;
+        }
+
+        .deca-paper h3 { 
+            font-family: 'Arial', Helvetica, sans-serif;
+            font-size: 14px; 
+            font-weight: 700; 
+            text-transform: uppercase;
+            margin-top: 1.5rem; 
+            margin-bottom: 0.5rem; 
+        }
+
+        /* List Styles */
+        .deca-paper ul { list-style-type: disc; padding-left: 1.5em; margin-bottom: 1em; }
+        .deca-paper ol { list-style-type: decimal; padding-left: 1.5em; margin-bottom: 1em; }
+        .deca-paper p { margin-bottom: 1em; text-align: justify; }
+        
+        /* Page Break Styling for Screen */
+        .deca-paper hr {
+            border: 0;
+            border-top: 4px dashed #cbd5e1;
+            margin: 3rem 0;
+            position: relative;
+        }
+        .deca-paper hr::after {
+            content: "PAGE BREAK (JUDGE'S VIEW)";
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            padding: 0 10px;
+            color: #94a3b8;
+            font-family: sans-serif;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        /* Header Info Block (Cluster/Event) */
+        .deca-header-info {
+            font-family: 'Arial', sans-serif;
+            font-weight: bold;
+            font-size: 12px;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        /* Tool Output Styles */
+        .tool-output { font-family: 'Inter', sans-serif; }
+        .tool-output h3 { font-weight: bold; margin-top: 1rem; margin-bottom: 0.5rem; color: #4b5563; }
+        .tool-output ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 1rem; }
+        /* Table Styles for Rubric */
+        .tool-output table { width: 100%; border-collapse: collapse; margin-top: 1rem; font-size: 0.9em; }
+        .tool-output th, .tool-output td { border: 1px solid #e2e8f0; padding: 0.75rem; text-align: left; vertical-align: middle; }
+        .tool-output th { background-color: #f8fafc; font-weight: 600; color: #1e293b; text-align: center; }
+        .tool-output td:not(:first-child) { text-align: center; } /* Center checkmarks */
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-blue-900 text-white p-6 shadow-lg no-print">
+        <div class="max-w-5xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="bg-yellow-400 text-blue-900 p-2 rounded font-bold text-xl">DECA</div>
+                <h1 class="text-2xl font-bold tracking-tight">AI Role Play Generator</h1>
+            </div>
+            <div class="text-blue-200 text-sm hidden sm:block">
+                Prepare for competition with instant scenarios
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow p-4 md:p-8">
+        <div class="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <!-- Configuration Panel (Left Sidebar) -->
+            <div class="lg:col-span-4 space-y-6 no-print">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 sticky top-8">
+                    <h2 class="text-lg font-bold text-slate-800 mb-4 border-b pb-2">Configuration</h2>
+                    
+                    <div class="space-y-4">
+                        <!-- Career Cluster -->
+                        <div>
+                            <label class="block text-sm font-medium text-slate-600 mb-1">Career Cluster</label>
+                            <div class="relative">
+                                <select id="clusterSelect" class="w-full p-3 border border-slate-300 rounded-lg appearance-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-slate-700">
+                                    <option value="">Select a Cluster...</option>
+                                </select>
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
+                                    <i class="fas fa-chevron-down text-xs"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Event -->
+                        <div>
+                            <label class="block text-sm font-medium text-slate-600 mb-1">Specific Event</label>
+                            <div class="relative">
+                                <select id="eventSelect" class="w-full p-3 border border-slate-300 rounded-lg appearance-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-slate-700" disabled>
+                                    <option value="">Select Cluster First</option>
+                                </select>
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
+                                    <i class="fas fa-chevron-down text-xs"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Instructional Area -->
+                        <div>
+                            <label class="block text-sm font-medium text-slate-600 mb-1">Instructional Area</label>
+                            <div class="relative">
+                                <select id="areaSelect" class="w-full p-3 border border-slate-300 rounded-lg appearance-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-slate-700" disabled>
+                                    <option value="Random">Select Cluster First</option>
+                                </select>
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
+                                    <i class="fas fa-chevron-down text-xs"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Generate Button -->
+                        <button id="generateBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition duration-200 flex items-center justify-center gap-2 shadow-md">
+                            <span>Generate Role Play</span>
+                            <i class="fas fa-magic"></i>
+                        </button>
+
+                        <div id="errorMsg" class="hidden text-red-500 text-sm mt-2 bg-red-50 p-2 rounded border border-red-200"></div>
+                    </div>
+                </div>
+
+                <!-- Tips Box -->
+                <div class="bg-blue-50 p-6 rounded-xl border border-blue-100 text-sm text-blue-800">
+                    <h3 class="font-bold mb-2"><i class="fas fa-lightbulb text-yellow-500 mr-2"></i>Pro Tip</h3>
+                    <p>Use this generated scenario to practice your prep time. Focus on hitting all performance indicators explicitly during your "presentation".</p>
+                </div>
+            </div>
+
+            <!-- Output Panel (Right Content) -->
+            <div class="lg:col-span-8 space-y-6">
+                
+                <!-- Empty State -->
+                <div id="emptyState" class="h-full flex flex-col items-center justify-center text-slate-400 bg-white rounded-xl border-2 border-dashed border-slate-200 p-12 min-h-[400px]">
+                    <div class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-4">
+                        <i class="fas fa-file-alt text-4xl text-slate-300"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-slate-600">No Scenario Generated</h3>
+                    <p class="text-center mt-2 max-w-xs">Select your options on the left and click Generate to create a custom DECA role play.</p>
+                </div>
+
+                <!-- Loading State -->
+                <div id="loadingState" class="hidden h-full flex flex-col items-center justify-center bg-white rounded-xl border border-slate-200 p-12 min-h-[400px]">
+                    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+                    <h3 class="text-lg font-semibold text-slate-700">Constructing Scenario...</h3>
+                    <p class="text-slate-500 text-sm mt-2">Analyzing performance indicators...</p>
+                </div>
+
+                <!-- Result Container -->
+                <div id="resultContainer" class="hidden space-y-6">
+                    
+                    <!-- AI Tools Bar -->
+                    <div class="bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-100 p-4 rounded-xl shadow-sm no-print">
+                        <h3 class="text-sm font-bold text-indigo-900 uppercase tracking-wider mb-3 flex items-center gap-2">
+                            <i class="fas fa-robot"></i> AI Study Buddy
+                        </h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                            <button onclick="handleExplainPIs()" class="flex items-center justify-center gap-2 bg-white hover:bg-indigo-50 border border-indigo-200 text-indigo-700 py-2 px-2 rounded-lg text-xs font-semibold transition shadow-sm hover:shadow-md">
+                                <span>✨ Explain PIs</span>
+                            </button>
+                            <button onclick="handleIdentifyTiers()" class="flex items-center justify-center gap-2 bg-white hover:bg-indigo-50 border border-indigo-200 text-indigo-700 py-2 px-2 rounded-lg text-xs font-semibold transition shadow-sm hover:shadow-md">
+                                <span>✨ PI Analysis</span>
+                            </button>
+                            <button onclick="handleJudgesRubric()" class="flex items-center justify-center gap-2 bg-white hover:bg-indigo-50 border border-indigo-200 text-indigo-700 py-2 px-2 rounded-lg text-xs font-semibold transition shadow-sm hover:shadow-md">
+                                <span>✨ Scoring Rubric</span>
+                            </button>
+                            <button onclick="handleVisualAids()" class="flex items-center justify-center gap-2 bg-white hover:bg-indigo-50 border border-indigo-200 text-indigo-700 py-2 px-2 rounded-lg text-xs font-semibold transition shadow-sm hover:shadow-md">
+                                <span>✨ Visual Aids</span>
+                            </button>
+                            <button onclick="handleSampleResponse()" class="flex items-center justify-center gap-2 bg-white hover:bg-indigo-50 border border-indigo-200 text-indigo-700 py-2 px-2 rounded-lg text-xs font-semibold transition shadow-sm hover:shadow-md">
+                                <span>✨ Sample Pitch</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Tool Output Container (Hidden by default) -->
+                    <div id="toolOutputContainer" class="hidden bg-indigo-900 text-white rounded-xl shadow-lg overflow-hidden border border-indigo-800 transition-all duration-300 relative no-print">
+                        <div class="p-4 bg-indigo-950 border-b border-indigo-800 flex justify-between items-center">
+                            <h3 id="toolTitle" class="font-bold text-indigo-100 flex items-center gap-2">
+                                <i class="fas fa-sparkles text-yellow-400"></i> AI Analysis
+                            </h3>
+                            <div class="flex items-center gap-2">
+                                <button onclick="printTool()" title="Print this analysis" class="text-indigo-300 hover:text-white hover:bg-indigo-800 rounded-full w-8 h-8 flex items-center justify-center transition">
+                                    <i class="fas fa-print"></i>
+                                </button>
+                                <button onclick="closeToolOutput()" title="Close" class="text-indigo-300 hover:text-white hover:bg-indigo-800 rounded-full w-8 h-8 flex items-center justify-center transition">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="p-6 bg-slate-50 text-slate-800 max-h-[500px] overflow-y-auto relative">
+                            <div id="toolLoader" class="absolute inset-0 bg-slate-50 flex flex-col items-center justify-center z-10">
+                                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mb-3"></div>
+                                <span class="text-sm text-indigo-600 font-medium">Thinking...</span>
+                            </div>
+                            <div id="toolContent" class="tool-output markdown-body text-sm"></div>
+                        </div>
+                    </div>
+
+                    <!-- Toolbar -->
+                    <div class="flex justify-end gap-2 no-print">
+                        <button onclick="copyToClipboard()" class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 px-3 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
+                            <i class="fas fa-copy"></i> Copy
+                        </button>
+                        <button onclick="window.print()" class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 px-3 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
+                            <i class="fas fa-print"></i> Print Role Play
+                        </button>
+                    </div>
+
+                    <!-- The Actual Paper -->
+                    <div class="bg-white shadow-lg rounded-none md:rounded-xl role-play-container min-h-[800px] relative">
+                        <!-- Content -->
+                        <div class="p-8 md:p-16 deca-paper" id="scenarioContent">
+                            <!-- Content injected here -->
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-white border-t border-slate-200 mt-auto py-6 no-print">
+        <div class="max-w-5xl mx-auto px-4 text-center text-slate-500 text-sm">
+            <p>Generated scenarios are for educational practice purposes.</p>
+        </div>
+    </footer>
+
+    <script>
+        // --- Data Configuration ---
+        const clusters = {
+            "Business Administration Core": [
+                "Principles of Business Management",
+                "Principles of Entrepreneurship",
+                "Principles of Finance",
+                "Principles of Hospitality and Tourism",
+                "Principles of Marketing"
+            ],
+            "Business Management & Administration": [
+                "Business Law and Ethics Team Decision Making",
+                "Human Resources Management Series"
+            ],
+            "Entrepreneurship": [
+                "Entrepreneurship Series",
+                "Entrepreneurship Team Decision Making"
+            ],
+            "Finance": [
+                "Accounting Applications Series",
+                "Business Finance Series",
+                "Financial Services Team Decision Making"
+            ],
+            "Hospitality & Tourism": [
+                "Hotel and Lodging Management Series",
+                "Quick Serve Restaurant Management Series",
+                "Restaurant and Food Service Management Series",
+                "Travel and Tourism Team Decision Making",
+                "Hospitality Services Team Decision Making"
+            ],
+            "Marketing": [
+                "Apparel and Accessories Marketing Series",
+                "Automotive Services Marketing Series",
+                "Business Services Marketing Series",
+                "Food Marketing Series",
+                "Marketing Communications Series",
+                "Marketing Management Team Decision Making",
+                "Retail Merchandising Series",
+                "Sports and Entertainment Marketing Series",
+                "Sports and Entertainment Marketing Team Decision Making"
+            ],
+            "Personal Financial Literacy": [
+                "Personal Financial Literacy Event"
+            ]
+        };
+
+        // Standard Business Admin Core Areas (Applied to most clusters)
+        const baCoreAreas = [
+            "Business Law", "Communications", "Customer Relations", "Economics", 
+            "Emotional Intelligence", "Financial Analysis", "Human Resources Management", 
+            "Information Management", "Marketing", "Operations", "Professional Development", 
+            "Strategic Management"
+        ];
+
+        // Specific mapping for additional cluster-specific areas
+        const clusterAreaMapping = {
+            "Business Administration Core": baCoreAreas,
+            "Business Management & Administration": [...baCoreAreas, "Knowledge Management", "Project Management", "Quality Management", "Risk Management"],
+            "Entrepreneurship": baCoreAreas, // Entrepreneurship typically draws from the core areas
+            "Finance": [...baCoreAreas, "Compliance", "Financial-Information Management", "Risk Management"],
+            "Hospitality & Tourism": [...baCoreAreas, "Distribution", "Revenue Management"],
+            "Marketing": [...baCoreAreas, "Channel Management", "Marketing-Information Management", "Market Planning", "Pricing", "Product/Service Management", "Promotion", "Selling"],
+            "Personal Financial Literacy": [
+                "Earning Income", "Buying Goods and Services", "Saving", "Investing", 
+                "Credit and Debt", "Financial Decision Making", "Risk Management and Insurance"
+            ] // PFL has a unique set
+        };
+
+        // --- State ---
+        let currentScenarioText = "";
+
+        // --- DOM Elements ---
+        const clusterSelect = document.getElementById('clusterSelect');
+        const eventSelect = document.getElementById('eventSelect');
+        const areaSelect = document.getElementById('areaSelect');
+        const generateBtn = document.getElementById('generateBtn');
+        const emptyState = document.getElementById('emptyState');
+        const loadingState = document.getElementById('loadingState');
+        const resultContainer = document.getElementById('resultContainer');
+        const scenarioContent = document.getElementById('scenarioContent');
+        const errorMsg = document.getElementById('errorMsg');
+        
+        // Tool Elements
+        const toolOutputContainer = document.getElementById('toolOutputContainer');
+        const toolTitle = document.getElementById('toolTitle');
+        const toolContent = document.getElementById('toolContent');
+        const toolLoader = document.getElementById('toolLoader');
+
+        // --- Initialization ---
+        function init() {
+            // Populate Clusters
+            for (const cluster in clusters) {
+                const option = document.createElement('option');
+                option.value = cluster;
+                option.textContent = cluster;
+                clusterSelect.appendChild(option);
+            }
+        }
+
+        // --- Event Listeners ---
+        clusterSelect.addEventListener('change', (e) => {
+            const selectedCluster = e.target.value;
+            
+            // 1. Populate Events
+            eventSelect.innerHTML = '<option value="">Select an Event...</option>';
+            if (selectedCluster && clusters[selectedCluster]) {
+                eventSelect.disabled = false;
+                clusters[selectedCluster].forEach(evt => {
+                    const option = document.createElement('option');
+                    option.value = evt;
+                    option.textContent = evt;
+                    eventSelect.appendChild(option);
+                });
+            } else {
+                eventSelect.disabled = true;
+                eventSelect.innerHTML = '<option value="">Select Cluster First</option>';
+            }
+
+            // 2. Populate Instructional Areas based on Cluster
+            areaSelect.innerHTML = '<option value="Random">🎲 Random</option>';
+            if (selectedCluster && clusterAreaMapping[selectedCluster]) {
+                areaSelect.disabled = false;
+                const areas = clusterAreaMapping[selectedCluster];
+                
+                // Sort alphabetically
+                areas.sort();
+                
+                areas.forEach(area => {
+                    const option = document.createElement('option');
+                    option.value = area;
+                    option.textContent = area;
+                    areaSelect.appendChild(option);
+                });
+            } else {
+                areaSelect.disabled = true;
+                areaSelect.innerHTML = '<option value="">Select Cluster First</option>';
+            }
+        });
+
+        generateBtn.addEventListener('click', handleGenerate);
+
+        // --- Core Logic ---
+        async function handleGenerate() {
+            const cluster = clusterSelect.value;
+            const eventName = eventSelect.value;
+            const instructionalArea = areaSelect.value;
+
+            if (!cluster || !eventName) {
+                showError("Please select both a Career Cluster and a Specific Event.");
+                return;
+            }
+
+            // Reset UI
+            errorMsg.classList.add('hidden');
+            emptyState.classList.add('hidden');
+            resultContainer.classList.add('hidden');
+            loadingState.classList.remove('hidden');
+            closeToolOutput(); // Close any open tool
+
+            try {
+                const prompt = createPrompt(cluster, eventName, instructionalArea);
+                const responseText = await callGeminiAPI(prompt);
+                
+                currentScenarioText = responseText; // Store for tools
+
+                // Render Markdown
+                const htmlContent = marked.parse(responseText);
+                
+                // UI State: Success
+                scenarioContent.innerHTML = htmlContent;
+                loadingState.classList.add('hidden');
+                resultContainer.classList.remove('hidden');
+                
+                // Scroll to top of result on mobile
+                if(window.innerWidth < 1024) {
+                    resultContainer.scrollIntoView({ behavior: 'smooth' });
+                }
+
+            } catch (err) {
+                loadingState.classList.add('hidden');
+                emptyState.classList.remove('hidden');
+                showError("Failed to generate scenario. Please try again. " + err.message);
+            }
+        }
+
+        // --- AI Tool Handlers ---
+
+        async function handleExplainPIs() {
+            if (!currentScenarioText) return;
+            showTool("Performance Indicator Analysis");
+            
+            const prompt = `
+                Based on the following DECA Role Play scenario, identify the Performance Indicators (PIs) listed.
+                For each PI, provide a brief "Plain English" explanation of what it means, and one specific example of how the student can demonstrate it in this specific scenario.
+
+                SCENARIO:
+                ${currentScenarioText}
+
+                Format as a Markdown list. Keep it concise.
+            `;
+            
+            await runToolQuery(prompt);
+        }
+
+        async function handleIdentifyTiers() {
+            if (!currentScenarioText) return;
+            showTool("PI Tier Breakdown");
+            
+            const prompt = `
+                Analyze the Performance Indicators (PIs) listed in the following DECA Role Play scenario.
+                For each PI found in the text, identify:
+                1. The PI Text.
+                2. The **Instructional Area** it belongs to (e.g., Economics, Marketing, etc.).
+                3. The **Tier** it likely falls under in the DECA curriculum framework:
+                   - **Tier 1: Business Administration Core** (General business skills common to all clusters)
+                   - **Tier 2: Cluster Core** (Specific to the chosen Career Cluster)
+                   - **Tier 3: Pathway Specific** (Highly specialized to the specific track)
+                
+                SCENARIO:
+                ${currentScenarioText}
+
+                Format the output as a clean Markdown Table with columns: PI Description, Instructional Area, and Tier.
+            `;
+            
+            await runToolQuery(prompt);
+        }
+
+        async function handleJudgesRubric() {
+            if (!currentScenarioText) return;
+            showTool("Judge's Evaluation Form");
+            
+            // Determine event type from the UI state
+            const eventName = document.getElementById('eventSelect').value;
+            const isTeamEvent = eventName.includes("Team Decision Making");
+            
+            // Define Exact Number Lists (Low to High as per PDF)
+            
+            // Individual Series (14 pts max)
+            let p1 = "0-1-2-3-4";
+            let p2 = "5-6-7-8";
+            let p3 = "9-10-11";
+            let p4 = "12-13-14";
+
+            // Team Decision Making (10 pts max approx)
+            if (isTeamEvent) {
+                p1 = "0-1-2-3";
+                p2 = "4-5-6";
+                p3 = "7-8";
+                p4 = "9-10";
+            }
+            
+            // Skills (6 pts max)
+            const s1 = "0-1";
+            const s2 = "2-3";
+            const s3 = "4";
+            const s4 = "5-6";
+
+            const prompt = `
+                Create an official DECA Judge's Evaluation Form based on the scenario text below.
+                It must strictly follow the format of the official DECA score sheet (Low score left, High score right).
+                
+                **HEADER INFO:**
+                **JUDGE'S EVALUATION FORM**
+                **INSTRUCTIONAL AREA:** (Extract from scenario)
+                **Participant:** _________________   **ID Number:** _________________
+
+                **TABLE STRUCTURE:**
+                Create a single Markdown table.
+                
+                **Columns:**
+                | Did the participant: | Little/No Value | Below Expectations | Meets Expectations | Exceeds Expectations | Judged Score |
+                | --- | :---: | :---: | :---: | :---: | :---: |
+
+                **Rows to Generate:**
+                1. **Performance Indicators:**
+                   - Extract each PI from the text and phrase it as a question (e.g., "Explain the nature of direct marketing channels?").
+                   - **CRITICAL:** Fill the score columns with these EXACT strings (do not change them):
+                     - Little/No Value: ${p1}
+                     - Below Expectations: ${p2}
+                     - Meets Expectations: ${p3}
+                     - Exceeds Expectations: ${p4}
+                   - Leave "Judged Score" blank.
+                
+                2. **21st Century Skills (Add a bold Divider Row):**
+                   - **21st CENTURY SKILLS** | | | | | |
+                   - Reason effectively and use systems thinking? | ${s1} | ${s2} | ${s3} | ${s4} | |
+                   - Make judgments and decisions, and solve problems? | ${s1} | ${s2} | ${s3} | ${s4} | |
+                   - Communicate clearly? | ${s1} | ${s2} | ${s3} | ${s4} | |
+                   - Show evidence of creativity? | ${s1} | ${s2} | ${s3} | ${s4} | |
+                   - Overall impression and responses to the judge's questions? | ${s1} | ${s2} | ${s3} | ${s4} | |
+
+                **FOOTER:**
+                **TOTAL SCORE (100)**: ___________
+
+                **SCENARIO:**
+                ${currentScenarioText}
+            `;
+            
+            await runToolQuery(prompt);
+        }
+
+        async function handleVisualAids() {
+            if (!currentScenarioText) return;
+            showTool("Visual Aid Suggestions");
+            
+            const prompt = `
+                DECA students are encouraged to draw visual aids (charts, graphs, agendas) during their prep time to show the judge.
+                Based on the scenario below, suggest 3 distinct and impressive visual aids the student should draw on paper.
+                Describe what each should look like and why it helps their argument.
+
+                SCENARIO:
+                ${currentScenarioText}
+
+                Format as a Markdown list.
+            `;
+            
+            await runToolQuery(prompt);
+        }
+
+        async function handleSampleResponse() {
+            if (!currentScenarioText) return;
+            showTool("Sample Pitch Outline");
+            
+            const prompt = `
+                Act as a DECA International Winner. Based on the scenario below, write a high-level outline of a winning presentation/pitch.
+                Include:
+                1. A creative introduction/hook.
+                2. Main body points that address the Performance Indicators.
+                3. A strong closing statement.
+                
+                Keep it structured as an outline, not a full script.
+
+                SCENARIO:
+                ${currentScenarioText}
+            `;
+            
+            await runToolQuery(prompt);
+        }
+
+        function showTool(title) {
+            toolOutputContainer.classList.remove('hidden');
+            toolTitle.innerHTML = `<i class="fas fa-sparkles text-yellow-400"></i> ${title}`;
+            toolLoader.classList.remove('hidden');
+            toolContent.innerHTML = '';
+            // Scroll to tool
+            toolOutputContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function closeToolOutput() {
+            toolOutputContainer.classList.add('hidden');
+        }
+
+        function printTool() {
+            const content = document.getElementById('toolContent').innerHTML;
+            const title = document.getElementById('toolTitle').innerText;
+            const printWindow = window.open('', '', 'height=600,width=800');
+            
+            printWindow.document.write('<html><head><title>' + title + '</title>');
+            // Add simple print styles
+            printWindow.document.write(`
+                <style>
+                    body { font-family: sans-serif; padding: 40px; color: #000; }
+                    h1 { text-align: center; border-bottom: 2px solid black; padding-bottom: 10px; margin-bottom: 20px; }
+                    table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 12px; }
+                    th, td { border: 1px solid black; padding: 8px; text-align: left; vertical-align: middle; }
+                    th { background-color: #f3f4f6; font-weight: bold; text-align: center; }
+                    td:not(:first-child) { text-align: center; }
+                    ul { margin-left: 20px; }
+                </style>
+            `);
+            printWindow.document.write('</head><body>');
+            printWindow.document.write('<h1>' + title + '</h1>');
+            printWindow.document.write(content);
+            printWindow.document.write('</body></html>');
+            
+            printWindow.document.close();
+            printWindow.print();
+        }
+
+        async function runToolQuery(prompt) {
+            try {
+                const response = await callGeminiAPI(prompt);
+                toolContent.innerHTML = marked.parse(response);
+                toolLoader.classList.add('hidden');
+            } catch (err) {
+                toolContent.innerHTML = `<p class="text-red-500">Error generating analysis: ${err.message}</p>`;
+                toolLoader.classList.add('hidden');
+            }
+        }
+
+        // --- Prompts & API ---
+
+        function createPrompt(cluster, eventName, area) {
+            // Check if it is a Team Decision Making event
+            const isTeamEvent = eventName.includes("Team Decision Making");
+            
+            // Set constraints based on event type
+            const piCount = isTeamEvent ? 7 : 5;
+            const piCountText = isTeamEvent ? "exactly 7" : "exactly 5";
+            const areaLimitText = isTeamEvent ? "At least 4" : "At least 3";
+            
+            // Correct Time Limits based on DECA Guide
+            // Team: 30 min prep, 15 min present
+            // Individual: 10 min prep, 10 min present
+            const prepTime = isTeamEvent ? "30 minutes" : "10 minutes";
+            const presentTime = isTeamEvent ? "15 minutes" : "10 minutes";
+
+            // Build dynamic list templates
+            let piListTemplate = "";
+            let judgeListTemplate = "";
+            
+            for(let i = 1; i <= piCount; i++) {
+                piListTemplate += `            ${i}.  [Indicator ${i}]\n`;
+                judgeListTemplate += `            ${i}.  **[Indicator ${i}]:** Did the participant...?\n`;
+            }
+
+            return `
+            You are an expert writer for DECA competitive events. 
+            Your task is to generate a high-quality, realistic Role Play scenario that strictly mirrors the official DECA competition format and difficulty.
+
+            **Parameters:**
+            * **Career Cluster:** ${cluster}
+            * **Event:** ${eventName}
+            * **Primary Instructional Area:** ${area === 'Random' ? 'Choose a relevant instructional area' : area}
+
+            **Style & Format Guidelines (Mimic Official DECA Samples):**
+            1.  **Tone:** Professional, concise, and challenging. Use business terminology appropriate for high school students.
+            2.  **Structure:** The output must be split into two distinct sections: "Participant Instructions" and "Judge's Instructions".
+            3.  **Performance Indicators:** Generate **${piCountText}** specific indicators. **${areaLimitText}** MUST align with the Instructional Area.
+
+            **REQUIRED OUTPUT FORMAT (Use Markdown):**
+
+            # ${eventName}
+            ### CAREER CLUSTER: ${cluster}
+            ### INSTRUCTIONAL AREA: [Selected Area]
+
+            ---
+
+            ## PARTICIPANT INSTRUCTIONS
+            * The participant is to be judged on his/her ability to perform the specific performance indicators stated below.
+            * The participant will have ${prepTime} to prepare and ${presentTime} to present his/her views to the judge.
+
+            ### PERFORMANCE INDICATORS
+${piListTemplate}
+
+            ### EVENT SITUATION
+            You are to assume the role of [Participant Role] at [Company Name], a [Company Description]. 
+            The judge is to assume the role of [Judge Role] at [Company Name].
+
+            [Detailed Scenario Paragraph 1: Describe the company context and current situation. Be specific about the industry and the business model.]
+
+            [Detailed Scenario Paragraph 2: Describe the specific problem, conflict, or opportunity. Explain exactly why the participant needs to meet with the judge.]
+
+            You must address the judge and [Specific Task: e.g., explain the marketing plan, resolve the conflict, propose the budget].
+
+            You will be meeting with the [Judge Role] in their office. The meeting will begin with your presentation.
+
+            ---
+            *(Page Break for Judge's View)*
+            ---
+
+            ## JUDGE'S INSTRUCTIONS
+
+            ### DIRECTIONS, INSTRUCTIONS, AND PROCEDURES
+            * Observe the participant's presentation.
+            * Do not interrupt the participant's presentation.
+            * You may ask questions after the participant has finished.
+
+            ### JUDGE'S EVALUATION INSTRUCTIONS
+            Evaluate the participant on the following Performance Indicators:
+
+${judgeListTemplate}
+
+            ### SUGGESTED QUESTIONS
+            1.  [Question 1 related to the scenario]
+            2.  [Question 2 related to the scenario]
+            3.  [Question 3 related to the scenario]
+            `;
+        }
+
+        async function callGeminiAPI(userPrompt) {
+            const apiKey = "AIzaSyCkQRgnC8VdJ5rR6nkaS-8DHWjeyKvzg0s"; // API Key provided by environment
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+
+            const payload = {
+                contents: [{
+                    parts: [{ text: userPrompt }]
+                }]
+            };
+
+            // Retry logic for robustness
+            const maxRetries = 3;
+            let delay = 1000;
+
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`API Error: ${response.status}`);
+                    }
+
+                    const data = await response.json();
+                    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                    
+                    if (!text) throw new Error("No content generated");
+                    return text;
+
+                } catch (error) {
+                    if (i === maxRetries - 1) throw error;
+                    await new Promise(r => setTimeout(r, delay));
+                    delay *= 2;
+                }
+            }
+        }
+
+        function showError(msg) {
+            errorMsg.textContent = msg;
+            errorMsg.classList.remove('hidden');
+        }
+
+        function copyToClipboard() {
+            const text = document.getElementById('scenarioContent').innerText;
+            
+            // Use execCommand for better compatibility in iframes if navigator.clipboard fails
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            document.body.appendChild(textArea);
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                const btn = document.querySelector('button[onclick="copyToClipboard()"]');
+                const originalHTML = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                setTimeout(() => btn.innerHTML = originalHTML, 2000);
+            } catch (err) {
+                console.error('Fallback: Oops, unable to copy', err);
+            }
+            document.body.removeChild(textArea);
+        }
+
+        // Run Init
+        init();
+
+    </script>
+</body>
+</html>
