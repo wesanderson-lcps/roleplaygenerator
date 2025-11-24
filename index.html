@@ -17,93 +17,32 @@
             .print-only { display: block !important; }
             body { background: white; color: black; }
             .role-play-container { box-shadow: none; border: none; padding: 0; }
-            /* Ensure page break happens cleanly */
             hr { break-after: page; border: 0; } 
+            
+            table, th, td {
+                border: 1px solid black !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
         }
 
-        /* --- DECA Document Authenticity Styles --- */
-        .deca-paper {
-            font-family: 'Times New Roman', Times, serif;
-            line-height: 1.3;
-            color: #000;
-        }
-        
-        /* Official-looking Headers */
-        .deca-paper h1 { 
-            font-family: 'Arial', Helvetica, sans-serif;
-            font-size: 24px; 
-            font-weight: 900; 
-            text-transform: uppercase;
-            text-align: center;
-            margin-bottom: 2rem;
-            color: #000;
-            letter-spacing: -0.5px;
-        }
-
-        .deca-paper h2 { 
-            font-family: 'Arial', Helvetica, sans-serif;
-            font-size: 16px; 
-            font-weight: 800; 
-            text-transform: uppercase;
-            margin-top: 2rem; 
-            margin-bottom: 1rem; 
-            border-bottom: 2px solid #000; /* The distinct black bar */
-            padding-bottom: 4px;
-        }
-
-        .deca-paper h3 { 
-            font-family: 'Arial', Helvetica, sans-serif;
-            font-size: 14px; 
-            font-weight: 700; 
-            text-transform: uppercase;
-            margin-top: 1.5rem; 
-            margin-bottom: 0.5rem; 
-        }
-
-        /* List Styles */
+        .deca-paper { font-family: 'Times New Roman', Times, serif; line-height: 1.3; color: #000; }
+        .deca-paper h1 { font-family: 'Arial', Helvetica, sans-serif; font-size: 24px; font-weight: 900; text-transform: uppercase; text-align: center; margin-bottom: 2rem; color: #000; letter-spacing: -0.5px; }
+        .deca-paper h2 { font-family: 'Arial', Helvetica, sans-serif; font-size: 16px; font-weight: 800; text-transform: uppercase; margin-top: 2rem; margin-bottom: 1rem; border-bottom: 2px solid #000; padding-bottom: 4px; }
+        .deca-paper h3 { font-family: 'Arial', Helvetica, sans-serif; font-size: 14px; font-weight: 700; text-transform: uppercase; margin-top: 1.5rem; margin-bottom: 0.5rem; }
         .deca-paper ul { list-style-type: disc; padding-left: 1.5em; margin-bottom: 1em; }
         .deca-paper ol { list-style-type: decimal; padding-left: 1.5em; margin-bottom: 1em; }
         .deca-paper p { margin-bottom: 1em; text-align: justify; }
-        
-        /* Page Break Styling for Screen */
-        .deca-paper hr {
-            border: 0;
-            border-top: 4px dashed #cbd5e1;
-            margin: 3rem 0;
-            position: relative;
-        }
-        .deca-paper hr::after {
-            content: "PAGE BREAK (JUDGE'S VIEW)";
-            position: absolute;
-            top: -12px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: white;
-            padding: 0 10px;
-            color: #94a3b8;
-            font-family: sans-serif;
-            font-size: 12px;
-            font-weight: bold;
-        }
+        .deca-paper hr { border: 0; border-top: 4px dashed #cbd5e1; margin: 3rem 0; position: relative; }
+        .deca-paper hr::after { content: "PAGE BREAK (JUDGE'S VIEW)"; position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: white; padding: 0 10px; color: #94a3b8; font-family: sans-serif; font-size: 12px; font-weight: bold; }
 
-        /* Header Info Block (Cluster/Event) */
-        .deca-header-info {
-            font-family: 'Arial', sans-serif;
-            font-weight: bold;
-            font-size: 12px;
-            text-transform: uppercase;
-            margin-bottom: 5px;
-        }
-
-        /* Tool Output Styles */
         .tool-output { font-family: 'Inter', sans-serif; }
         .tool-output h3 { font-weight: bold; margin-top: 1rem; margin-bottom: 0.5rem; color: #4b5563; }
         .tool-output ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 1rem; }
-        /* Table Styles for Rubric */
         .tool-output table { width: 100%; border-collapse: collapse; margin-top: 1rem; font-size: 0.9em; }
-        .tool-output th, .tool-output td { border: 1px solid #e2e8f0; padding: 0.75rem; text-align: left; vertical-align: middle; }
-        .tool-output th { background-color: #f8fafc; font-weight: 600; color: #1e293b; text-align: center; }
-        .tool-output td:not(:first-child) { text-align: center; } /* Center checkmarks */
+        .tool-output th, .tool-output td { border: 1px solid #000; padding: 0.75rem; text-align: left; vertical-align: middle; }
+        .tool-output th { background-color: #f3f4f6; font-weight: 600; color: #000; text-align: center; }
+        .tool-output td:not(:first-child) { text-align: center; }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen flex flex-col">
@@ -115,16 +54,13 @@
                 <div class="bg-yellow-400 text-blue-900 p-2 rounded font-bold text-xl">DECA</div>
                 <h1 class="text-2xl font-bold tracking-tight">AI Role Play Generator</h1>
             </div>
-            <div class="text-blue-200 text-sm hidden sm:block">
-                Prepare for competition with instant scenarios
-            </div>
         </div>
     </header>
 
     <main class="flex-grow p-4 md:p-8">
         <div class="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
             
-            <!-- Configuration Panel (Left Sidebar) -->
+            <!-- Configuration Panel -->
             <div class="lg:col-span-4 space-y-6 no-print">
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 sticky top-8">
                     <h2 class="text-lg font-bold text-slate-800 mb-4 border-b pb-2">Configuration</h2>
@@ -186,16 +122,14 @@
                     </div>
                 </div>
 
-                <!-- Tips Box -->
                 <div class="bg-blue-50 p-6 rounded-xl border border-blue-100 text-sm text-blue-800">
                     <h3 class="font-bold mb-2"><i class="fas fa-lightbulb text-yellow-500 mr-2"></i>Pro Tip</h3>
                     <p>Use this generated scenario to practice your prep time. Focus on hitting all performance indicators explicitly during your "presentation".</p>
                 </div>
             </div>
 
-            <!-- Output Panel (Right Content) -->
+            <!-- Output Panel -->
             <div class="lg:col-span-8 space-y-6">
-                
                 <!-- Empty State -->
                 <div id="emptyState" class="h-full flex flex-col items-center justify-center text-slate-400 bg-white rounded-xl border-2 border-dashed border-slate-200 p-12 min-h-[400px]">
                     <div class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-4">
@@ -209,13 +143,11 @@
                 <div id="loadingState" class="hidden h-full flex flex-col items-center justify-center bg-white rounded-xl border border-slate-200 p-12 min-h-[400px]">
                     <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
                     <h3 class="text-lg font-semibold text-slate-700">Constructing Scenario...</h3>
-                    <p class="text-slate-500 text-sm mt-2">Analyzing performance indicators...</p>
                 </div>
 
                 <!-- Result Container -->
                 <div id="resultContainer" class="hidden space-y-6">
-                    
-                    <!-- AI Tools Bar -->
+                    <!-- AI Tools -->
                     <div class="bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-100 p-4 rounded-xl shadow-sm no-print">
                         <h3 class="text-sm font-bold text-indigo-900 uppercase tracking-wider mb-3 flex items-center gap-2">
                             <i class="fas fa-robot"></i> AI Study Buddy
@@ -239,19 +171,16 @@
                         </div>
                     </div>
 
-                    <!-- Tool Output Container (Hidden by default) -->
+                    <!-- Tool Output -->
                     <div id="toolOutputContainer" class="hidden bg-indigo-900 text-white rounded-xl shadow-lg overflow-hidden border border-indigo-800 transition-all duration-300 relative no-print">
                         <div class="p-4 bg-indigo-950 border-b border-indigo-800 flex justify-between items-center">
                             <h3 id="toolTitle" class="font-bold text-indigo-100 flex items-center gap-2">
                                 <i class="fas fa-sparkles text-yellow-400"></i> AI Analysis
                             </h3>
                             <div class="flex items-center gap-2">
-                                <button onclick="printTool()" title="Print this analysis" class="text-indigo-300 hover:text-white hover:bg-indigo-800 rounded-full w-8 h-8 flex items-center justify-center transition">
-                                    <i class="fas fa-print"></i>
-                                </button>
-                                <button onclick="closeToolOutput()" title="Close" class="text-indigo-300 hover:text-white hover:bg-indigo-800 rounded-full w-8 h-8 flex items-center justify-center transition">
-                                    <i class="fas fa-times"></i>
-                                </button>
+                                <button onclick="copyToolOutput()" title="Copy to Clipboard" class="text-indigo-300 hover:text-white hover:bg-indigo-800 rounded-full w-8 h-8 flex items-center justify-center transition"><i class="fas fa-copy"></i></button>
+                                <button onclick="printTool()" title="Print" class="text-indigo-300 hover:text-white hover:bg-indigo-800 rounded-full w-8 h-8 flex items-center justify-center transition"><i class="fas fa-print"></i></button>
+                                <button onclick="closeToolOutput()" title="Close" class="text-indigo-300 hover:text-white hover:bg-indigo-800 rounded-full w-8 h-8 flex items-center justify-center transition"><i class="fas fa-times"></i></button>
                             </div>
                         </div>
                         <div class="p-6 bg-slate-50 text-slate-800 max-h-[500px] overflow-y-auto relative">
@@ -265,7 +194,7 @@
 
                     <!-- Toolbar -->
                     <div class="flex justify-end gap-2 no-print">
-                        <button onclick="copyToClipboard()" class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 px-3 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
+                        <button id="mainCopyBtn" onclick="copyToClipboard('scenarioContent', 'mainCopyBtn')" class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 px-3 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
                             <i class="fas fa-copy"></i> Copy
                         </button>
                         <button onclick="window.print()" class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 px-3 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
@@ -275,13 +204,9 @@
 
                     <!-- The Actual Paper -->
                     <div class="bg-white shadow-lg rounded-none md:rounded-xl role-play-container min-h-[800px] relative">
-                        <!-- Content -->
-                        <div class="p-8 md:p-16 deca-paper" id="scenarioContent">
-                            <!-- Content injected here -->
-                        </div>
+                        <div class="p-8 md:p-16 deca-paper" id="scenarioContent"></div>
                     </div>
                 </div>
-
             </div>
         </div>
     </main>
@@ -293,60 +218,20 @@
     </footer>
 
     <script>
-        // --- Data Configuration ---
+        // --- SAFE INITIALIZATION & DATA ---
+        
         const clusters = {
-            "Business Administration Core": [
-                "Principles of Business Management",
-                "Principles of Entrepreneurship",
-                "Principles of Finance",
-                "Principles of Hospitality and Tourism",
-                "Principles of Marketing"
-            ],
-            "Business Management & Administration": [
-                "Business Law and Ethics Team Decision Making",
-                "Human Resources Management Series"
-            ],
-            "Entrepreneurship": [
-                "Entrepreneurship Series",
-                "Entrepreneurship Team Decision Making"
-            ],
-            "Finance": [
-                "Accounting Applications Series",
-                "Business Finance Series",
-                "Financial Services Team Decision Making"
-            ],
-            "Hospitality & Tourism": [
-                "Hotel and Lodging Management Series",
-                "Quick Serve Restaurant Management Series",
-                "Restaurant and Food Service Management Series",
-                "Travel and Tourism Team Decision Making",
-                "Hospitality Services Team Decision Making"
-            ],
-            "Marketing": [
-                "Apparel and Accessories Marketing Series",
-                "Automotive Services Marketing Series",
-                "Business Services Marketing Series",
-                "Food Marketing Series",
-                "Marketing Communications Series",
-                "Marketing Management Team Decision Making",
-                "Retail Merchandising Series",
-                "Sports and Entertainment Marketing Series",
-                "Sports and Entertainment Marketing Team Decision Making"
-            ],
-            "Personal Financial Literacy": [
-                "Personal Financial Literacy Event"
-            ]
+            "Business Administration Core": ["Principles of Business Management", "Principles of Entrepreneurship", "Principles of Finance", "Principles of Hospitality and Tourism", "Principles of Marketing"],
+            "Business Management & Administration": ["Business Law and Ethics Team Decision Making", "Human Resources Management Series"],
+            "Entrepreneurship": ["Entrepreneurship Series", "Entrepreneurship Team Decision Making"],
+            "Finance": ["Accounting Applications Series", "Business Finance Series", "Financial Services Team Decision Making"],
+            "Hospitality & Tourism": ["Hotel and Lodging Management Series", "Quick Serve Restaurant Management Series", "Restaurant and Food Service Management Series", "Travel and Tourism Team Decision Making", "Hospitality Services Team Decision Making"],
+            "Marketing": ["Apparel and Accessories Marketing Series", "Automotive Services Marketing Series", "Business Services Marketing Series", "Food Marketing Series", "Marketing Communications Series", "Marketing Management Team Decision Making", "Retail Merchandising Series", "Sports and Entertainment Marketing Series", "Sports and Entertainment Marketing Team Decision Making"],
+            "Personal Financial Literacy": ["Personal Financial Literacy Event"]
         };
 
-        // Standard Business Admin Core Areas (Applied to most clusters)
-        const baCoreAreas = [
-            "Business Law", "Communications", "Customer Relations", "Economics", 
-            "Emotional Intelligence", "Financial Analysis", "Human Resources Management", 
-            "Information Management", "Marketing", "Operations", "Professional Development", 
-            "Strategic Management"
-        ];
+        const baCoreAreas = ["Business Law", "Communications", "Customer Relations", "Economics", "Emotional Intelligence", "Financial Analysis", "Human Resources Management", "Information Management", "Marketing", "Operations", "Professional Development", "Strategic Management"];
 
-        // Specific mapping for additional cluster-specific areas
         const clusterAreaMapping = {
             "Business Administration Core": baCoreAreas,
             "Business Management & Administration": [...baCoreAreas, "Knowledge Management", "Project Management", "Quality Management", "Risk Management"],
@@ -354,103 +239,101 @@
             "Finance": [...baCoreAreas, "Compliance", "Financial-Information Management", "Risk Management"],
             "Hospitality & Tourism": [...baCoreAreas, "Distribution", "Revenue Management"],
             "Marketing": [...baCoreAreas, "Channel Management", "Marketing-Information Management", "Market Planning", "Pricing", "Product/Service Management", "Promotion", "Selling"],
-            "Personal Financial Literacy": [
-                "Earning Income", "Buying Goods and Services", "Saving", "Investing", 
-                "Credit and Debt", "Financial Decision Making", "Risk Management and Insurance"
-            ]
+            "Personal Financial Literacy": ["Earning Income", "Buying Goods and Services", "Saving", "Investing", "Credit and Debt", "Financial Decision Making", "Risk Management and Insurance"]
         };
 
-        // --- State ---
         let currentScenarioText = "";
-
-        // --- DOM Elements ---
-        const apiKeyInput = document.getElementById('apiKeyInput');
-        const clusterSelect = document.getElementById('clusterSelect');
-        const eventSelect = document.getElementById('eventSelect');
-        const areaSelect = document.getElementById('areaSelect');
-        const generateBtn = document.getElementById('generateBtn');
-        const emptyState = document.getElementById('emptyState');
-        const loadingState = document.getElementById('loadingState');
-        const resultContainer = document.getElementById('resultContainer');
-        const scenarioContent = document.getElementById('scenarioContent');
-        const errorMsg = document.getElementById('errorMsg');
         
-        // Tool Elements
-        const toolOutputContainer = document.getElementById('toolOutputContainer');
-        const toolTitle = document.getElementById('toolTitle');
-        const toolContent = document.getElementById('toolContent');
-        const toolLoader = document.getElementById('toolLoader');
+        // --- SAFE DOM LOADING ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const apiKeyInput = document.getElementById('apiKeyInput');
+            const clusterSelect = document.getElementById('clusterSelect');
+            const eventSelect = document.getElementById('eventSelect');
+            const areaSelect = document.getElementById('areaSelect');
+            const generateBtn = document.getElementById('generateBtn');
 
-        // --- Initialization ---
-        function init() {
-            // Load API Key from storage
-            const storedKey = localStorage.getItem('deca_api_key');
-            if (storedKey) {
-                apiKeyInput.value = storedKey;
+            // 1. Safe Local Storage Load
+            try {
+                const storedKey = localStorage.getItem('deca_api_key');
+                if (storedKey && apiKeyInput) {
+                    apiKeyInput.value = storedKey;
+                }
+            } catch (e) {
+                console.warn("Local storage access blocked. Key won't be saved.", e);
             }
 
-            // Populate Clusters
-            for (const cluster in clusters) {
-                const option = document.createElement('option');
-                option.value = cluster;
-                option.textContent = cluster;
-                clusterSelect.appendChild(option);
+            // 2. Populate Clusters
+            if (clusterSelect) {
+                for (const cluster in clusters) {
+                    const option = document.createElement('option');
+                    option.value = cluster;
+                    option.textContent = cluster;
+                    clusterSelect.appendChild(option);
+                }
             }
-        }
 
-        // --- Event Listeners ---
-        // Save API Key on change
-        apiKeyInput.addEventListener('input', (e) => {
-            localStorage.setItem('deca_api_key', e.target.value.trim());
+            // 3. Event Listeners
+            if (apiKeyInput) {
+                apiKeyInput.addEventListener('input', (e) => {
+                    try { localStorage.setItem('deca_api_key', e.target.value.trim()); } catch (e) {}
+                });
+            }
+
+            if (clusterSelect) {
+                clusterSelect.addEventListener('change', (e) => {
+                    const selectedCluster = e.target.value;
+                    
+                    // Populate Events
+                    eventSelect.innerHTML = '<option value="">Select an Event...</option>';
+                    if (selectedCluster && clusters[selectedCluster]) {
+                        eventSelect.disabled = false;
+                        clusters[selectedCluster].forEach(evt => {
+                            const option = document.createElement('option');
+                            option.value = evt;
+                            option.textContent = evt;
+                            eventSelect.appendChild(option);
+                        });
+                    } else {
+                        eventSelect.disabled = true;
+                        eventSelect.innerHTML = '<option value="">Select Cluster First</option>';
+                    }
+
+                    // Populate Areas
+                    areaSelect.innerHTML = '<option value="Random">🎲 Random</option>';
+                    if (selectedCluster && clusterAreaMapping[selectedCluster]) {
+                        areaSelect.disabled = false;
+                        const areas = clusterAreaMapping[selectedCluster];
+                        areas.sort();
+                        areas.forEach(area => {
+                            const option = document.createElement('option');
+                            option.value = area;
+                            option.textContent = area;
+                            areaSelect.appendChild(option);
+                        });
+                    } else {
+                        areaSelect.disabled = true;
+                        areaSelect.innerHTML = '<option value="">Select Cluster First</option>';
+                    }
+                });
+            }
+
+            if (generateBtn) {
+                generateBtn.addEventListener('click', handleGenerate);
+            }
         });
 
-        clusterSelect.addEventListener('change', (e) => {
-            const selectedCluster = e.target.value;
-            
-            // 1. Populate Events
-            eventSelect.innerHTML = '<option value="">Select an Event...</option>';
-            if (selectedCluster && clusters[selectedCluster]) {
-                eventSelect.disabled = false;
-                clusters[selectedCluster].forEach(evt => {
-                    const option = document.createElement('option');
-                    option.value = evt;
-                    option.textContent = evt;
-                    eventSelect.appendChild(option);
-                });
-            } else {
-                eventSelect.disabled = true;
-                eventSelect.innerHTML = '<option value="">Select Cluster First</option>';
-            }
-
-            // 2. Populate Instructional Areas based on Cluster
-            areaSelect.innerHTML = '<option value="Random">🎲 Random</option>';
-            if (selectedCluster && clusterAreaMapping[selectedCluster]) {
-                areaSelect.disabled = false;
-                const areas = clusterAreaMapping[selectedCluster];
-                
-                // Sort alphabetically
-                areas.sort();
-                
-                areas.forEach(area => {
-                    const option = document.createElement('option');
-                    option.value = area;
-                    option.textContent = area;
-                    areaSelect.appendChild(option);
-                });
-            } else {
-                areaSelect.disabled = true;
-                areaSelect.innerHTML = '<option value="">Select Cluster First</option>';
-            }
-        });
-
-        generateBtn.addEventListener('click', handleGenerate);
-
-        // --- Core Logic ---
+        // --- CORE LOGIC ---
+        
         async function handleGenerate() {
-            const cluster = clusterSelect.value;
-            const eventName = eventSelect.value;
-            const instructionalArea = areaSelect.value;
-            const userKey = apiKeyInput.value.trim();
+            const cluster = document.getElementById('clusterSelect').value;
+            const eventName = document.getElementById('eventSelect').value;
+            const instructionalArea = document.getElementById('areaSelect').value;
+            const userKey = document.getElementById('apiKeyInput').value.trim();
+            const errorMsg = document.getElementById('errorMsg');
+            const emptyState = document.getElementById('emptyState');
+            const resultContainer = document.getElementById('resultContainer');
+            const loadingState = document.getElementById('loadingState');
+            const scenarioContent = document.getElementById('scenarioContent');
 
             if (!userKey) {
                 showError("Please enter your Google API Key in the box above.");
@@ -462,28 +345,23 @@
                 return;
             }
 
-            // Reset UI
             errorMsg.classList.add('hidden');
             emptyState.classList.add('hidden');
             resultContainer.classList.add('hidden');
             loadingState.classList.remove('hidden');
-            closeToolOutput(); // Close any open tool
+            closeToolOutput(); 
 
             try {
                 const prompt = createPrompt(cluster, eventName, instructionalArea);
                 const responseText = await callGeminiAPI(prompt, userKey);
                 
-                currentScenarioText = responseText; // Store for tools
-
-                // Render Markdown
+                currentScenarioText = responseText;
                 const htmlContent = marked.parse(responseText);
                 
-                // UI State: Success
                 scenarioContent.innerHTML = htmlContent;
                 loadingState.classList.add('hidden');
                 resultContainer.classList.remove('hidden');
                 
-                // Scroll to top of result on mobile
                 if(window.innerWidth < 1024) {
                     resultContainer.scrollIntoView({ behavior: 'smooth' });
                 }
@@ -495,179 +373,142 @@
             }
         }
 
-        // --- AI Tool Handlers ---
-
+        // --- AI TOOLS ---
         async function handleExplainPIs() {
             if (!currentScenarioText) return;
             showTool("Performance Indicator Analysis");
-            
-            const prompt = `
-                Based on the following DECA Role Play scenario, identify the Performance Indicators (PIs) listed.
-                For each PI, provide a brief "Plain English" explanation of what it means, and one specific example of how the student can demonstrate it in this specific scenario.
-
-                SCENARIO:
-                ${currentScenarioText}
-
-                Format as a Markdown list. Keep it concise.
-            `;
-            
+            const prompt = `Based on the following DECA Role Play scenario, identify the Performance Indicators (PIs) listed. For each PI, provide a brief "Plain English" explanation of what it means, and one specific example of how the student can demonstrate it in this specific scenario.\n\nSCENARIO:\n${currentScenarioText}\n\nFormat as a Markdown list. Keep it concise.`;
             await runToolQuery(prompt);
         }
 
         async function handleIdentifyTiers() {
             if (!currentScenarioText) return;
             showTool("PI Tier Breakdown");
-            
-            const prompt = `
-                Analyze the Performance Indicators (PIs) listed in the following DECA Role Play scenario.
-                For each PI found in the text, identify:
-                1. The PI Text.
-                2. The **Instructional Area** it belongs to (e.g., Economics, Marketing, etc.).
-                3. The **Tier** it likely falls under in the DECA curriculum framework:
-                   - **Tier 1: Business Administration Core** (General business skills common to all clusters)
-                   - **Tier 2: Cluster Core** (Specific to the chosen Career Cluster)
-                   - **Tier 3: Pathway Specific** (Highly specialized to the specific track)
-                
-                SCENARIO:
-                ${currentScenarioText}
-
-                Format the output as a clean Markdown Table with columns: PI Description, Instructional Area, and Tier.
-            `;
-            
+            const prompt = `Analyze the Performance Indicators (PIs) listed in the following DECA Role Play scenario. For each PI found in the text, identify:\n1. The PI Text.\n2. The **Instructional Area** it belongs to.\n3. The **Tier** it likely falls under (Tier 1: Business Admin Core, Tier 2: Cluster Core, Tier 3: Pathway Specific).\n\nSCENARIO:\n${currentScenarioText}\n\nFormat as a clean Markdown Table.`;
             await runToolQuery(prompt);
         }
 
         async function handleJudgesRubric() {
             if (!currentScenarioText) return;
             showTool("Judge's Evaluation Form");
-            
-            // Determine event type from the UI state
             const eventName = document.getElementById('eventSelect').value;
             const isTeamEvent = eventName.includes("Team Decision Making");
             
-            // Define Exact Number Lists (Low to High as per PDF)
-            // Individual Series (14 pts max)
-            let p1 = "0-1-2-3-4";
-            let p2 = "5-6-7-8";
-            let p3 = "9-10-11";
-            let p4 = "12-13-14";
+            let p1 = "0-1-2-3-4"; let p2 = "5-6-7-8"; let p3 = "9-10-11"; let p4 = "12-13-14";
+            if (isTeamEvent) { p1 = "0-1-2-3"; p2 = "4-5-6"; p3 = "7-8"; p4 = "9-10"; }
+            const s1 = "0-1"; const s2 = "2-3"; const s3 = "4"; const s4 = "5-6";
 
-            // Team Decision Making (10 pts max approx)
-            if (isTeamEvent) {
-                p1 = "0-1-2-3";
-                p2 = "4-5-6";
-                p3 = "7-8";
-                p4 = "9-10";
-            }
-            
-            // Skills (6 pts max)
-            const s1 = "0-1";
-            const s2 = "2-3";
-            const s3 = "4";
-            const s4 = "5-6";
-
-            const prompt = `
-                Create an official DECA Judge's Evaluation Form based on the scenario text below.
-                It must strictly follow the format of the official DECA score sheet (Low score left, High score right).
-                
-                **HEADER INFO:**
-                **JUDGE'S EVALUATION FORM**
-                **INSTRUCTIONAL AREA:** (Extract from scenario)
-                **Participant:** _________________   **ID Number:** _________________
-
-                **TABLE STRUCTURE:**
-                Create a single Markdown table.
-                
-                **Columns:**
-                | Did the participant: | Little/No Value | Below Expectations | Meets Expectations | Exceeds Expectations | Judged Score |
-                | --- | :---: | :---: | :---: | :---: | :---: |
-
-                **Rows to Generate:**
-                1. **Performance Indicators:**
-                   - Extract each PI from the text and phrase it as a question (e.g., "Explain the nature of direct marketing channels?").
-                   - **CRITICAL:** Fill the score columns with these EXACT strings (do not change them):
-                     - Little/No Value: ${p1}
-                     - Below Expectations: ${p2}
-                     - Meets Expectations: ${p3}
-                     - Exceeds Expectations: ${p4}
-                   - Leave "Judged Score" blank.
-                
-                2. **21st Century Skills (Add a bold Divider Row):**
-                   - **21st CENTURY SKILLS** | | | | | |
-                   - Reason effectively and use systems thinking? | ${s1} | ${s2} | ${s3} | ${s4} | |
-                   - Make judgments and decisions, and solve problems? | ${s1} | ${s2} | ${s3} | ${s4} | |
-                   - Communicate clearly? | ${s1} | ${s2} | ${s3} | ${s4} | |
-                   - Show evidence of creativity? | ${s1} | ${s2} | ${s3} | ${s4} | |
-                   - Overall impression and responses to the judge's questions? | ${s1} | ${s2} | ${s3} | ${s4} | |
-
-                **FOOTER:**
-                **TOTAL SCORE (100)**: ___________
-
-                **SCENARIO:**
-                ${currentScenarioText}
-            `;
-            
+            const prompt = `Create an official DECA Judge's Evaluation Form based on the scenario below. Follow standard Low-to-High scoring format.\n\n**COLUMNS:**\nDid the participant... | Little/No Value | Below Expectations | Meets Expectations | Exceeds Expectations | Judged Score\n\n**ROWS:**\n1. Extract PIs as questions. Use score columns: ${p1} | ${p2} | ${p3} | ${p4}\n2. **21st CENTURY SKILLS** (Bold Divider)\n- Reason effectively and use systems thinking? | ${s1} | ${s2} | ${s3} | ${s4} | \n- Make judgments and decisions, and solve problems? | ${s1} | ${s2} | ${s3} | ${s4} | \n- Communicate clearly? | ${s1} | ${s2} | ${s3} | ${s4} | \n- Show evidence of creativity? | ${s1} | ${s2} | ${s3} | ${s4} | \n- Overall impression? | ${s1} | ${s2} | ${s3} | ${s4} | \n\n**SCENARIO:**\n${currentScenarioText}`;
             await runToolQuery(prompt);
         }
 
         async function handleVisualAids() {
             if (!currentScenarioText) return;
             showTool("Visual Aid Suggestions");
-            
-            const prompt = `
-                DECA students are encouraged to draw visual aids (charts, graphs, agendas) during their prep time to show the judge.
-                Based on the scenario below, suggest 3 distinct and impressive visual aids the student should draw on paper.
-                Describe what each should look like and why it helps their argument.
-
-                SCENARIO:
-                ${currentScenarioText}
-
-                Format as a Markdown list.
-            `;
-            
+            const prompt = `Suggest 3 distinct and impressive visual aids (charts, graphs, agendas) the student should draw on paper for this scenario. Describe appearance and purpose.\n\nSCENARIO:\n${currentScenarioText}\n\nFormat as Markdown list.`;
             await runToolQuery(prompt);
         }
 
         async function handleSampleResponse() {
             if (!currentScenarioText) return;
             showTool("Sample Pitch Outline");
-            
-            const prompt = `
-                Act as a DECA International Winner. Based on the scenario below, write a high-level outline of a winning presentation/pitch.
-                Include:
-                1. A creative introduction/hook.
-                2. Main body points that address the Performance Indicators.
-                3. A strong closing statement.
-                
-                Keep it structured as an outline, not a full script.
-
-                SCENARIO:
-                ${currentScenarioText}
-            `;
-            
+            const prompt = `Act as a DECA International Winner. Write a high-level outline of a winning presentation for this scenario. Include Hook, Main Points (addressing PIs), and Closing.\n\nSCENARIO:\n${currentScenarioText}`;
             await runToolQuery(prompt);
         }
 
+        // --- UTILS ---
         function showTool(title) {
-            toolOutputContainer.classList.remove('hidden');
-            toolTitle.innerHTML = `<i class="fas fa-sparkles text-yellow-400"></i> ${title}`;
-            toolLoader.classList.remove('hidden');
-            toolContent.innerHTML = '';
-            // Scroll to tool
-            toolOutputContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            const c = document.getElementById('toolOutputContainer');
+            document.getElementById('toolTitle').innerHTML = `<i class="fas fa-sparkles text-yellow-400"></i> ${title}`;
+            document.getElementById('toolLoader').classList.remove('hidden');
+            document.getElementById('toolContent').innerHTML = '';
+            c.classList.remove('hidden');
+            c.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        function closeToolOutput() { document.getElementById('toolOutputContainer').classList.add('hidden'); }
+        function showError(msg) { const e = document.getElementById('errorMsg'); e.textContent = msg; e.classList.remove('hidden'); }
+        
+        function copyToClipboard(elementId, btnId) {
+            const content = document.getElementById(elementId);
+            const selection = window.getSelection();
+            const range = document.createRange();
+            range.selectNodeContents(content);
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                if(btnId) {
+                    const btn = document.getElementById(btnId);
+                    const orig = btn.innerHTML;
+                    btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                    setTimeout(() => btn.innerHTML = orig, 2000);
+                }
+            } catch (err) { alert("Failed to copy."); }
+            selection.removeAllRanges();
         }
 
-        function closeToolOutput() {
-            toolOutputContainer.classList.add('hidden');
-        }
+        function copyToolOutput() { copyToClipboard('toolContent', null); }
 
         function printTool() {
             const content = document.getElementById('toolContent').innerHTML;
             const title = document.getElementById('toolTitle').innerText;
-            const printWindow = window.open('', '', 'height=600,width=800');
+            const w = window.open('', '', 'height=600,width=800');
+            w.document.write(`<html><head><title>${title}</title><style>body{font-family:sans-serif;padding:40px;}table{width:100%;border-collapse:collapse;margin-top:20px;font-size:12px;-webkit-print-color-adjust:exact;print-color-adjust:exact;}th,td{border:1px solid black!important;padding:8px;text-align:left;}th{background:#f3f4f6;font-weight:bold;text-align:center;}td:not(:first-child){text-align:center;}</style></head><body><h1>${title}</h1>${content}</body></html>`);
+            w.document.close();
+            w.print();
+        }
+
+        function createPrompt(cluster, eventName, area) {
+            const isTeamEvent = eventName.includes("Team Decision Making");
+            const piCount = isTeamEvent ? 7 : 5;
+            const piCountText = isTeamEvent ? "exactly 7" : "exactly 5";
+            const areaLimitText = isTeamEvent ? "At least 4" : "At least 3";
+            const prepTime = isTeamEvent ? "30 minutes" : "10 minutes";
+            const presentTime = isTeamEvent ? "15 minutes" : "10 minutes";
+
+            let piList = ""; let judgeList = "";
+            for(let i=1; i<=piCount; i++) {
+                piList += `            ${i}.  [Indicator ${i}]\n`;
+                judgeList += `            ${i}.  **[Indicator ${i}]:** Did the participant...?\n`;
+            }
+
+            return `You are an expert writer for DECA competitive events. Generate a realistic Role Play scenario mimicking official DECA difficulty.\n\n**Parameters:**\n* Cluster: ${cluster}\n* Event: ${eventName}\n* Area: ${area}\n\n**Format Requirements:**\n1. Split into "Participant Instructions" and "Judge's Instructions".\n2. Generate **${piCountText}** PIs. **${areaLimitText}** MUST align with the Instructional Area.\n\n**OUTPUT TEMPLATE (Markdown):**\n# ${eventName}\n### CAREER CLUSTER: ${cluster}\n### INSTRUCTIONAL AREA: [Selected Area]\n---\n## PARTICIPANT INSTRUCTIONS\n* The participant is to be judged on his/her ability to perform the specific performance indicators stated below.\n* The participant will have ${prepTime} to prepare and ${presentTime} to present his/her views to the judge.\n\n### PERFORMANCE INDICATORS\n${piList}\n### EVENT SITUATION\nYou are to assume the role of [Participant Role] at [Company Name]... [Scenario Details]... Address the judge and [Specific Task].\n---\n*(Page Break for Judge's View)*\n---\n## JUDGE'S INSTRUCTIONS\n### DIRECTIONS\n* Observe the presentation.\n\n### JUDGE'S EVALUATION INSTRUCTIONS\nEvaluate on:\n${judgeList}\n### SUGGESTED QUESTIONS\n1. [Question]\n2. [Question]\n3. [Question]`;
+        }
+
+        async function callGeminiAPI(prompt, key) {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${key}`;
+            const payload = { contents: [{ parts: [{ text: prompt }] }] };
             
-            printWindow.document.write('<html><head><title>' + title + '</title>');
-            // Add simple print styles
-            printWindow.document.write(`
-                <style>
-                    body { font-family: sans-serif;
+            let delay = 1000;
+            for (let i = 0; i < 3; i++) {
+                try {
+                    const response = await fetch(url, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
+                    if (response.status === 403) throw new Error("403 Forbidden. Your API Key is likely locked to a different website URL.");
+                    if (!response.ok) { const e = await response.json().catch(()=>({})); throw new Error(e.error?.message || response.status); }
+                    const data = await response.json();
+                    const t = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                    if(!t) throw new Error("No content generated.");
+                    return t;
+                } catch (e) {
+                    if (i === 2) throw e;
+                    await new Promise(r => setTimeout(r, delay));
+                    delay *= 2;
+                }
+            }
+        }
+        
+        async function runToolQuery(prompt) {
+            const k = document.getElementById('apiKeyInput').value.trim();
+            if(!k) { alert("Enter API Key first."); return; }
+            try {
+                const r = await callGeminiAPI(prompt, k);
+                document.getElementById('toolContent').innerHTML = marked.parse(r);
+                document.getElementById('toolLoader').classList.add('hidden');
+            } catch(e) {
+                document.getElementById('toolContent').innerHTML = `<p class="text-red-500">Error: ${e.message}</p>`;
+                document.getElementById('toolLoader').classList.add('hidden');
+            }
+        }
+    </script>
+</body>
+</html>
