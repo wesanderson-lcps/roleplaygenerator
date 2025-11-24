@@ -26,15 +26,62 @@
             }
         }
 
+        /* --- DECA Document Authenticity Styles --- */
         .deca-paper { font-family: 'Times New Roman', Times, serif; line-height: 1.3; color: #000; }
-        .deca-paper h1 { font-family: 'Arial', Helvetica, sans-serif; font-size: 24px; font-weight: 900; text-transform: uppercase; text-align: center; margin-bottom: 2rem; color: #000; letter-spacing: -0.5px; }
-        .deca-paper h2 { font-family: 'Arial', Helvetica, sans-serif; font-size: 16px; font-weight: 800; text-transform: uppercase; margin-top: 2rem; margin-bottom: 1rem; border-bottom: 2px solid #000; padding-bottom: 4px; }
-        .deca-paper h3 { font-family: 'Arial', Helvetica, sans-serif; font-size: 14px; font-weight: 700; text-transform: uppercase; margin-top: 1.5rem; margin-bottom: 0.5rem; }
+        
+        /* Official-looking Headers */
+        .deca-paper h1 { 
+            font-family: 'Arial', Helvetica, sans-serif;
+            font-size: 24px; 
+            font-weight: 900; 
+            text-transform: uppercase;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            color: #000;
+            letter-spacing: -0.5px;
+        }
+
+        /* Section Headers (PARTICIPANT INSTRUCTIONS, etc.) */
+        .deca-paper h2 { 
+            font-family: 'Arial', Helvetica, sans-serif;
+            font-size: 14px; 
+            font-weight: 800; 
+            text-transform: uppercase;
+            margin-top: 1.5rem; 
+            margin-bottom: 0.5rem; 
+            color: #000;
+        }
+
+        /* Bold Labels within text */
+        .deca-paper strong {
+            font-family: 'Arial', Helvetica, sans-serif;
+            font-weight: 800;
+        }
+
         .deca-paper ul { list-style-type: disc; padding-left: 1.5em; margin-bottom: 1em; }
         .deca-paper ol { list-style-type: decimal; padding-left: 1.5em; margin-bottom: 1em; }
         .deca-paper p { margin-bottom: 1em; text-align: justify; }
-        .deca-paper hr { border: 0; border-top: 4px dashed #cbd5e1; margin: 3rem 0; position: relative; }
-        .deca-paper hr::after { content: "PAGE BREAK (JUDGE'S VIEW)"; position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: white; padding: 0 10px; color: #94a3b8; font-family: sans-serif; font-size: 12px; font-weight: bold; }
+        
+        /* Page Break Styling for Screen */
+        .deca-paper hr {
+            border: 0;
+            border-top: 4px dashed #cbd5e1;
+            margin: 3rem 0;
+            position: relative;
+        }
+        .deca-paper hr::after {
+            content: "PAGE BREAK (JUDGE'S VIEW)";
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            padding: 0 10px;
+            color: #94a3b8;
+            font-family: sans-serif;
+            font-size: 12px;
+            font-weight: bold;
+        }
 
         .tool-output { font-family: 'Inter', sans-serif; }
         .tool-output h3 { font-weight: bold; margin-top: 1rem; margin-bottom: 0.5rem; color: #4b5563; }
@@ -466,98 +513,62 @@
         }
 
         function createPrompt(cluster, eventName, area) {
-            // Check if it is a Team Decision Making event
             const isTeamEvent = eventName.includes("Team Decision Making");
-            
-            // Set constraints based on event type
             const piCount = isTeamEvent ? 7 : 5;
             const piCountText = isTeamEvent ? "exactly 7" : "exactly 5";
             const areaLimitText = isTeamEvent ? "At least 4" : "At least 3";
-            
-            // Correct Time Limits based on DECA Guide
-            // Team: 30 min prep, 15 min present
-            // Individual: 10 min prep, 10 min present
             const prepTime = isTeamEvent ? "30 minutes" : "10 minutes";
             const presentTime = isTeamEvent ? "15 minutes" : "10 minutes";
 
-            // Build dynamic list templates
-            let piListTemplate = "";
-            let judgeListTemplate = "";
+            let piList = ""; 
+            let judgeList = "";
             
-            for(let i = 1; i <= piCount; i++) {
-                piListTemplate += `            ${i}.  [Indicator ${i}]\n`;
-                judgeListTemplate += `            ${i}.  **[Indicator ${i}]:** Did the participant...?\n`;
+            // Generate numbered lists
+            for(let i=1; i<=piCount; i++) {
+                // Just a simple numbered list in Markdown, the AI will fill the content
+                piList += `1. [Performance Indicator ${i}]\n`;
+                judgeList += `            ${i}.  **[Indicator ${i}]:** Did the participant...?\n`;
             }
 
-            return `
-            You are an expert writer for DECA competitive events. 
-            Your task is to generate a high-quality, realistic Role Play scenario that strictly mirrors the official DECA competition format and difficulty.
+            // EXACT BOILERPLATE FROM 2025 DECA SAMPLES
+            const participantInstructions = `The event will be presented to you through your reading of the 21st Century Skills, Performance Indicators and Event Situation. You will have up to ${prepTime} to review this information and prepare your presentation. You may make notes to use during your presentation.\n\nYou will have up to ${presentTime} to make your presentation to the judge (you may have more than one judge).\n\nYou will be evaluated on how well you demonstrate the $21^{st}$ Century Skills and meet the performance indicators of this event.\n\nTurn in all of your notes and event materials when you have completed the event.`;
 
-            **Parameters:**
-            * **Career Cluster:** ${cluster}
-            * **Event:** ${eventName}
-            * **Primary Instructional Area:** ${area === 'Random' ? 'Choose a relevant instructional area' : area}
+            // HARDCODED SKILLS LIST to match sample
+            const skills21 = `* **Critical Thinking** – Reason effectively and use systems thinking.\n* **Problem Solving** – Make judgments and decisions and solve problems.\n* **Communication** – Communicate clearly.\n* **Creativity and Innovation** – Show evidence of creativity.`;
 
-            **Style & Format Guidelines (Mimic Official DECA Samples):**
-            1.  **Tone:** Professional, concise, and challenging. Use business terminology appropriate for high school students.
-            2.  **Structure:** The output must be split into two distinct sections: "Participant Instructions" and "Judge's Instructions".
-            3.  **Performance Indicators:** Generate **${piCountText}** specific indicators. **${areaLimitText}** MUST align with the Instructional Area.
-            4.  **Roles:** Clearly define who the Participant is and who the Judge is by TITLE ONLY. Do NOT invent names (e.g., use "Store Manager", not "Mr. Smith").
-
-            **REQUIRED OUTPUT FORMAT (Use Markdown):**
-
-            # ${eventName}
-            ### CAREER CLUSTER: ${cluster}
-            ### INSTRUCTIONAL AREA: [Selected Area]
-
-            ---
-
-            ## PARTICIPANT INSTRUCTIONS
-            * The participant is to be judged on his/her ability to perform the specific performance indicators stated below.
-            * The participant will have ${prepTime} to prepare and ${presentTime} to present his/her views to the judge.
-
-            ### 21st CENTURY SKILLS
-            * Critical Thinking – Reason effectively and use systems thinking.
-            * Problem Solving – Make judgments and decisions and solve problems.
-            * Communication – Communicate clearly.
-            * Creativity and Innovation – Show evidence of creativity.
-
-            ### PERFORMANCE INDICATORS
-${piListTemplate}
-
-            ### EVENT SITUATION
-            You are to assume the role of [Participant Role] at [Company Name], a [Company Description]. 
-            The judge is to assume the role of [Judge Role] at [Company Name].
-
-            [Detailed Scenario Paragraph 1: Describe the company context and current situation. Be specific about the industry and the business model.]
-
-            [Detailed Scenario Paragraph 2: Describe the specific problem, conflict, or opportunity. Explain exactly why the participant needs to meet with the judge.]
-
-            You must address the judge and [Specific Task: e.g., explain the marketing plan, resolve the conflict, propose the budget].
-
-            You will be meeting with the [Judge Role] in their office. The meeting will begin with your presentation.
-
-            ---
-            *(Page Break for Judge's View)*
-            ---
-
-            ## JUDGE'S INSTRUCTIONS
-
-            ### DIRECTIONS, INSTRUCTIONS, AND PROCEDURES
-            * Observe the participant's presentation.
-            * Do not interrupt the participant's presentation.
-            * You may ask questions after the participant has finished.
-
-            ### JUDGE'S EVALUATION INSTRUCTIONS
-            Evaluate the participant on the following Performance Indicators:
-
-${judgeListTemplate}
-
-            ### SUGGESTED QUESTIONS
-            1.  [Question 1 related to the scenario]
-            2.  [Question 2 related to the scenario]
-            3.  [Question 3 related to the scenario]
-            `;
+            return `You are an expert writer for DECA competitive events. Your goal is to generate a role play that looks identical to an official DECA event sheet.\n\n` +
+            `**INPUTS:**\nCluster: ${cluster}\nEvent: ${eventName}\nInstructional Area: ${area}\n\n` +
+            `**STRICT OUTPUT FORMAT (Do not deviate):**\n` +
+            `\n` +
+            `# ${eventName.toUpperCase()}\n` +
+            `**CAREER CLUSTER**\n${cluster}\n\n` +
+            `**CAREER PATHWAY**\n(Determine a suitable pathway based on the event, e.g., Merchandising, Management)\n\n` +
+            `**INSTRUCTIONAL AREA**\n${area}\n\n` +
+            `---\n\n` +
+            `## PARTICIPANT INSTRUCTIONS\n` +
+            `${participantInstructions}\n\n` +
+            `## 21st CENTURY SKILLS\n` +
+            `${skills21}\n\n` +
+            `## PERFORMANCE INDICATORS\n` +
+            `${piList}\n` + // Use the loop variable
+            `(Generate exactly ${piCountText} PIs. ${areaLimitText} must be from ${area})\n\n` +
+            `## EVENT SITUATION\n` +
+            `You are to assume the role of [Role Title] at [Company Name], a [Company Description]. The judge is to assume the role of [Judge Role Title] at [Company Name].\n\n` +
+            `[Paragraph 1: Detailed background of the business, current market situation, or specific project context. Be specific about the industry.]\n\n` +
+            `[Paragraph 2: The specific problem, conflict, or opportunity that needs addressing. Why is this meeting happening now?]\n\n` +
+            `[Paragraph 3: The specific task. What must the participant explain, propose, or resolve?]\n\n` +
+            `You will be meeting with the [Judge Role Title] in their office. The meeting will begin with your presentation.\n\n` +
+            `---\n` +
+            `*(Page Break for Judge's View)*\n` +
+            `---\n` +
+            `## JUDGE'S INSTRUCTIONS\n` +
+            `**DIRECTIONS, INSTRUCTIONS, AND PROCEDURES**\n` +
+            `* Observe the participant's presentation.\n* Do not interrupt the participant's presentation.\n* You may ask questions after the participant has finished.\n\n` +
+            `**JUDGE'S EVALUATION INSTRUCTIONS**\n` +
+            `Evaluate the participant on the following Performance Indicators:\n` +
+            `1. **[Indicator 1]:** Did the participant...?\n... (Match PIs above)\n\n` +
+            `**SUGGESTED QUESTIONS**\n` +
+            `1. [Question]\n2. [Question]\n3. [Question]`;
         }
 
         async function callGeminiAPI(prompt, key) {
