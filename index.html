@@ -432,18 +432,25 @@
             const content = document.getElementById(elementId);
             const selection = window.getSelection();
             const range = document.createRange();
+            
             range.selectNodeContents(content);
             selection.removeAllRanges();
             selection.addRange(range);
+            
             try {
                 document.execCommand('copy');
+                
                 if(btnId) {
                     const btn = document.getElementById(btnId);
                     const orig = btn.innerHTML;
                     btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
                     setTimeout(() => btn.innerHTML = orig, 2000);
                 }
-            } catch (err) { alert("Failed to copy."); }
+            } catch (err) {
+                console.error('Copy failed', err);
+                alert("Failed to copy. Please select the text and copy manually.");
+            }
+            
             selection.removeAllRanges();
         }
 
@@ -459,20 +466,98 @@
         }
 
         function createPrompt(cluster, eventName, area) {
+            // Check if it is a Team Decision Making event
             const isTeamEvent = eventName.includes("Team Decision Making");
+            
+            // Set constraints based on event type
             const piCount = isTeamEvent ? 7 : 5;
             const piCountText = isTeamEvent ? "exactly 7" : "exactly 5";
             const areaLimitText = isTeamEvent ? "At least 4" : "At least 3";
+            
+            // Correct Time Limits based on DECA Guide
+            // Team: 30 min prep, 15 min present
+            // Individual: 10 min prep, 10 min present
             const prepTime = isTeamEvent ? "30 minutes" : "10 minutes";
             const presentTime = isTeamEvent ? "15 minutes" : "10 minutes";
 
-            let piList = ""; let judgeList = "";
-            for(let i=1; i<=piCount; i++) {
-                piList += `            ${i}.  [Indicator ${i}]\n`;
-                judgeList += `            ${i}.  **[Indicator ${i}]:** Did the participant...?\n`;
+            // Build dynamic list templates
+            let piListTemplate = "";
+            let judgeListTemplate = "";
+            
+            for(let i = 1; i <= piCount; i++) {
+                piListTemplate += `            ${i}.  [Indicator ${i}]\n`;
+                judgeListTemplate += `            ${i}.  **[Indicator ${i}]:** Did the participant...?\n`;
             }
 
-            return `You are an expert writer for DECA competitive events. Generate a realistic Role Play scenario mimicking official DECA difficulty.\n\n**Parameters:**\n* Cluster: ${cluster}\n* Event: ${eventName}\n* Area: ${area}\n\n**Format Requirements:**\n1. Split into "Participant Instructions" and "Judge's Instructions".\n2. Generate **${piCountText}** PIs. **${areaLimitText}** MUST align with the Instructional Area.\n3. **Roles:** Clearly define who the Participant is and who the Judge is by TITLE ONLY. Do NOT invent names (e.g., use "Store Manager", not "Mr. Smith").\n\n**OUTPUT TEMPLATE (Markdown):**\n# ${eventName}\n### CAREER CLUSTER: ${cluster}\n### INSTRUCTIONAL AREA: [Selected Area]\n---\n## PARTICIPANT INSTRUCTIONS\n* The participant is to be judged on his/her ability to perform the specific performance indicators stated below.\n* The participant will have ${prepTime} to prepare and ${presentTime} to present his/her views to the judge.\n\n### PERFORMANCE INDICATORS\n${piList}\n### EVENT SITUATION\nYou are to assume the role of [Participant Role] at [Company Name]... [Scenario Details]... Address the judge and [Specific Task].\n---\n*(Page Break for Judge's View)*\n---\n## JUDGE'S INSTRUCTIONS\n### DIRECTIONS\n* Observe the presentation.\n\n### JUDGE'S EVALUATION INSTRUCTIONS\nEvaluate on:\n${judgeList}\n### SUGGESTED QUESTIONS\n1. [Question]\n2. [Question]\n3. [Question]`;
+            return `
+            You are an expert writer for DECA competitive events. 
+            Your task is to generate a high-quality, realistic Role Play scenario that strictly mirrors the official DECA competition format and difficulty.
+
+            **Parameters:**
+            * **Career Cluster:** ${cluster}
+            * **Event:** ${eventName}
+            * **Primary Instructional Area:** ${area === 'Random' ? 'Choose a relevant instructional area' : area}
+
+            **Style & Format Guidelines (Mimic Official DECA Samples):**
+            1.  **Tone:** Professional, concise, and challenging. Use business terminology appropriate for high school students.
+            2.  **Structure:** The output must be split into two distinct sections: "Participant Instructions" and "Judge's Instructions".
+            3.  **Performance Indicators:** Generate **${piCountText}** specific indicators. **${areaLimitText}** MUST align with the Instructional Area.
+            4.  **Roles:** Clearly define who the Participant is and who the Judge is by TITLE ONLY. Do NOT invent names (e.g., use "Store Manager", not "Mr. Smith").
+
+            **REQUIRED OUTPUT FORMAT (Use Markdown):**
+
+            # ${eventName}
+            ### CAREER CLUSTER: ${cluster}
+            ### INSTRUCTIONAL AREA: [Selected Area]
+
+            ---
+
+            ## PARTICIPANT INSTRUCTIONS
+            * The participant is to be judged on his/her ability to perform the specific performance indicators stated below.
+            * The participant will have ${prepTime} to prepare and ${presentTime} to present his/her views to the judge.
+
+            ### 21st CENTURY SKILLS
+            * Critical Thinking – Reason effectively and use systems thinking.
+            * Problem Solving – Make judgments and decisions and solve problems.
+            * Communication – Communicate clearly.
+            * Creativity and Innovation – Show evidence of creativity.
+
+            ### PERFORMANCE INDICATORS
+${piListTemplate}
+
+            ### EVENT SITUATION
+            You are to assume the role of [Participant Role] at [Company Name], a [Company Description]. 
+            The judge is to assume the role of [Judge Role] at [Company Name].
+
+            [Detailed Scenario Paragraph 1: Describe the company context and current situation. Be specific about the industry and the business model.]
+
+            [Detailed Scenario Paragraph 2: Describe the specific problem, conflict, or opportunity. Explain exactly why the participant needs to meet with the judge.]
+
+            You must address the judge and [Specific Task: e.g., explain the marketing plan, resolve the conflict, propose the budget].
+
+            You will be meeting with the [Judge Role] in their office. The meeting will begin with your presentation.
+
+            ---
+            *(Page Break for Judge's View)*
+            ---
+
+            ## JUDGE'S INSTRUCTIONS
+
+            ### DIRECTIONS, INSTRUCTIONS, AND PROCEDURES
+            * Observe the participant's presentation.
+            * Do not interrupt the participant's presentation.
+            * You may ask questions after the participant has finished.
+
+            ### JUDGE'S EVALUATION INSTRUCTIONS
+            Evaluate the participant on the following Performance Indicators:
+
+${judgeListTemplate}
+
+            ### SUGGESTED QUESTIONS
+            1.  [Question 1 related to the scenario]
+            2.  [Question 2 related to the scenario]
+            3.  [Question 3 related to the scenario]
+            `;
         }
 
         async function callGeminiAPI(prompt, key) {
