@@ -130,6 +130,13 @@
                     <h2 class="text-lg font-bold text-slate-800 mb-4 border-b pb-2">Configuration</h2>
                     
                     <div class="space-y-4">
+                        <!-- API Key Input -->
+                        <div class="bg-slate-50 p-3 rounded border border-slate-200">
+                            <label class="block text-xs font-bold text-slate-500 mb-1">GOOGLE API KEY (Required)</label>
+                            <input type="password" id="apiKeyInput" placeholder="Paste AIza... key here" class="w-full p-2 text-sm border border-slate-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <p class="text-[10px] text-slate-400 mt-1">Key is saved to your browser automatically.</p>
+                        </div>
+
                         <!-- Career Cluster -->
                         <div>
                             <label class="block text-sm font-medium text-slate-600 mb-1">Career Cluster</label>
@@ -195,7 +202,7 @@
                         <i class="fas fa-file-alt text-4xl text-slate-300"></i>
                     </div>
                     <h3 class="text-xl font-semibold text-slate-600">No Scenario Generated</h3>
-                    <p class="text-center mt-2 max-w-xs">Select your options on the left and click Generate to create a custom DECA role play.</p>
+                    <p class="text-center mt-2 max-w-xs">Enter your API Key, select your options, and click Generate.</p>
                 </div>
 
                 <!-- Loading State -->
@@ -343,20 +350,21 @@
         const clusterAreaMapping = {
             "Business Administration Core": baCoreAreas,
             "Business Management & Administration": [...baCoreAreas, "Knowledge Management", "Project Management", "Quality Management", "Risk Management"],
-            "Entrepreneurship": baCoreAreas, // Entrepreneurship typically draws from the core areas
+            "Entrepreneurship": baCoreAreas,
             "Finance": [...baCoreAreas, "Compliance", "Financial-Information Management", "Risk Management"],
             "Hospitality & Tourism": [...baCoreAreas, "Distribution", "Revenue Management"],
             "Marketing": [...baCoreAreas, "Channel Management", "Marketing-Information Management", "Market Planning", "Pricing", "Product/Service Management", "Promotion", "Selling"],
             "Personal Financial Literacy": [
                 "Earning Income", "Buying Goods and Services", "Saving", "Investing", 
                 "Credit and Debt", "Financial Decision Making", "Risk Management and Insurance"
-            ] // PFL has a unique set
+            ]
         };
 
         // --- State ---
         let currentScenarioText = "";
 
         // --- DOM Elements ---
+        const apiKeyInput = document.getElementById('apiKeyInput');
         const clusterSelect = document.getElementById('clusterSelect');
         const eventSelect = document.getElementById('eventSelect');
         const areaSelect = document.getElementById('areaSelect');
@@ -375,6 +383,12 @@
 
         // --- Initialization ---
         function init() {
+            // Load API Key from storage
+            const storedKey = localStorage.getItem('deca_api_key');
+            if (storedKey) {
+                apiKeyInput.value = storedKey;
+            }
+
             // Populate Clusters
             for (const cluster in clusters) {
                 const option = document.createElement('option');
@@ -385,6 +399,11 @@
         }
 
         // --- Event Listeners ---
+        // Save API Key on change
+        apiKeyInput.addEventListener('input', (e) => {
+            localStorage.setItem('deca_api_key', e.target.value.trim());
+        });
+
         clusterSelect.addEventListener('change', (e) => {
             const selectedCluster = e.target.value;
             
@@ -431,6 +450,12 @@
             const cluster = clusterSelect.value;
             const eventName = eventSelect.value;
             const instructionalArea = areaSelect.value;
+            const userKey = apiKeyInput.value.trim();
+
+            if (!userKey) {
+                showError("Please enter your Google API Key in the box above.");
+                return;
+            }
 
             if (!cluster || !eventName) {
                 showError("Please select both a Career Cluster and a Specific Event.");
@@ -446,7 +471,7 @@
 
             try {
                 const prompt = createPrompt(cluster, eventName, instructionalArea);
-                const responseText = await callGeminiAPI(prompt);
+                const responseText = await callGeminiAPI(prompt, userKey);
                 
                 currentScenarioText = responseText; // Store for tools
 
@@ -466,7 +491,7 @@
             } catch (err) {
                 loadingState.classList.add('hidden');
                 emptyState.classList.remove('hidden');
-                showError("Failed to generate scenario. Please try again. " + err.message);
+                showError("Failed to generate: " + err.message);
             }
         }
 
@@ -521,7 +546,6 @@
             const isTeamEvent = eventName.includes("Team Decision Making");
             
             // Define Exact Number Lists (Low to High as per PDF)
-            
             // Individual Series (14 pts max)
             let p1 = "0-1-2-3-4";
             let p2 = "5-6-7-8";
@@ -646,193 +670,4 @@
             // Add simple print styles
             printWindow.document.write(`
                 <style>
-                    body { font-family: sans-serif; padding: 40px; color: #000; }
-                    h1 { text-align: center; border-bottom: 2px solid black; padding-bottom: 10px; margin-bottom: 20px; }
-                    table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 12px; }
-                    th, td { border: 1px solid black; padding: 8px; text-align: left; vertical-align: middle; }
-                    th { background-color: #f3f4f6; font-weight: bold; text-align: center; }
-                    td:not(:first-child) { text-align: center; }
-                    ul { margin-left: 20px; }
-                </style>
-            `);
-            printWindow.document.write('</head><body>');
-            printWindow.document.write('<h1>' + title + '</h1>');
-            printWindow.document.write(content);
-            printWindow.document.write('</body></html>');
-            
-            printWindow.document.close();
-            printWindow.print();
-        }
-
-        async function runToolQuery(prompt) {
-            try {
-                const response = await callGeminiAPI(prompt);
-                toolContent.innerHTML = marked.parse(response);
-                toolLoader.classList.add('hidden');
-            } catch (err) {
-                toolContent.innerHTML = `<p class="text-red-500">Error generating analysis: ${err.message}</p>`;
-                toolLoader.classList.add('hidden');
-            }
-        }
-
-        // --- Prompts & API ---
-
-        function createPrompt(cluster, eventName, area) {
-            // Check if it is a Team Decision Making event
-            const isTeamEvent = eventName.includes("Team Decision Making");
-            
-            // Set constraints based on event type
-            const piCount = isTeamEvent ? 7 : 5;
-            const piCountText = isTeamEvent ? "exactly 7" : "exactly 5";
-            const areaLimitText = isTeamEvent ? "At least 4" : "At least 3";
-            
-            // Correct Time Limits based on DECA Guide
-            // Team: 30 min prep, 15 min present
-            // Individual: 10 min prep, 10 min present
-            const prepTime = isTeamEvent ? "30 minutes" : "10 minutes";
-            const presentTime = isTeamEvent ? "15 minutes" : "10 minutes";
-
-            // Build dynamic list templates
-            let piListTemplate = "";
-            let judgeListTemplate = "";
-            
-            for(let i = 1; i <= piCount; i++) {
-                piListTemplate += `            ${i}.  [Indicator ${i}]\n`;
-                judgeListTemplate += `            ${i}.  **[Indicator ${i}]:** Did the participant...?\n`;
-            }
-
-            return `
-            You are an expert writer for DECA competitive events. 
-            Your task is to generate a high-quality, realistic Role Play scenario that strictly mirrors the official DECA competition format and difficulty.
-
-            **Parameters:**
-            * **Career Cluster:** ${cluster}
-            * **Event:** ${eventName}
-            * **Primary Instructional Area:** ${area === 'Random' ? 'Choose a relevant instructional area' : area}
-
-            **Style & Format Guidelines (Mimic Official DECA Samples):**
-            1.  **Tone:** Professional, concise, and challenging. Use business terminology appropriate for high school students.
-            2.  **Structure:** The output must be split into two distinct sections: "Participant Instructions" and "Judge's Instructions".
-            3.  **Performance Indicators:** Generate **${piCountText}** specific indicators. **${areaLimitText}** MUST align with the Instructional Area.
-
-            **REQUIRED OUTPUT FORMAT (Use Markdown):**
-
-            # ${eventName}
-            ### CAREER CLUSTER: ${cluster}
-            ### INSTRUCTIONAL AREA: [Selected Area]
-
-            ---
-
-            ## PARTICIPANT INSTRUCTIONS
-            * The participant is to be judged on his/her ability to perform the specific performance indicators stated below.
-            * The participant will have ${prepTime} to prepare and ${presentTime} to present his/her views to the judge.
-
-            ### PERFORMANCE INDICATORS
-${piListTemplate}
-
-            ### EVENT SITUATION
-            You are to assume the role of [Participant Role] at [Company Name], a [Company Description]. 
-            The judge is to assume the role of [Judge Role] at [Company Name].
-
-            [Detailed Scenario Paragraph 1: Describe the company context and current situation. Be specific about the industry and the business model.]
-
-            [Detailed Scenario Paragraph 2: Describe the specific problem, conflict, or opportunity. Explain exactly why the participant needs to meet with the judge.]
-
-            You must address the judge and [Specific Task: e.g., explain the marketing plan, resolve the conflict, propose the budget].
-
-            You will be meeting with the [Judge Role] in their office. The meeting will begin with your presentation.
-
-            ---
-            *(Page Break for Judge's View)*
-            ---
-
-            ## JUDGE'S INSTRUCTIONS
-
-            ### DIRECTIONS, INSTRUCTIONS, AND PROCEDURES
-            * Observe the participant's presentation.
-            * Do not interrupt the participant's presentation.
-            * You may ask questions after the participant has finished.
-
-            ### JUDGE'S EVALUATION INSTRUCTIONS
-            Evaluate the participant on the following Performance Indicators:
-
-${judgeListTemplate}
-
-            ### SUGGESTED QUESTIONS
-            1.  [Question 1 related to the scenario]
-            2.  [Question 2 related to the scenario]
-            3.  [Question 3 related to the scenario]
-            `;
-        }
-
-        async function callGeminiAPI(userPrompt) {
-            const apiKey = "AIzaSyCkQRgnC8VdJ5rR6nkaS-8DHWjeyKvzg0s"; // API Key provided by environment
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
-
-            const payload = {
-                contents: [{
-                    parts: [{ text: userPrompt }]
-                }]
-            };
-
-            // Retry logic for robustness
-            const maxRetries = 3;
-            let delay = 1000;
-
-            for (let i = 0; i < maxRetries; i++) {
-                try {
-                    const response = await fetch(url, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-
-                    if (!response.ok) {
-                        throw new Error(`API Error: ${response.status}`);
-                    }
-
-                    const data = await response.json();
-                    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-                    
-                    if (!text) throw new Error("No content generated");
-                    return text;
-
-                } catch (error) {
-                    if (i === maxRetries - 1) throw error;
-                    await new Promise(r => setTimeout(r, delay));
-                    delay *= 2;
-                }
-            }
-        }
-
-        function showError(msg) {
-            errorMsg.textContent = msg;
-            errorMsg.classList.remove('hidden');
-        }
-
-        function copyToClipboard() {
-            const text = document.getElementById('scenarioContent').innerText;
-            
-            // Use execCommand for better compatibility in iframes if navigator.clipboard fails
-            const textArea = document.createElement("textarea");
-            textArea.value = text;
-            document.body.appendChild(textArea);
-            textArea.select();
-            try {
-                document.execCommand('copy');
-                const btn = document.querySelector('button[onclick="copyToClipboard()"]');
-                const originalHTML = btn.innerHTML;
-                btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
-                setTimeout(() => btn.innerHTML = originalHTML, 2000);
-            } catch (err) {
-                console.error('Fallback: Oops, unable to copy', err);
-            }
-            document.body.removeChild(textArea);
-        }
-
-        // Run Init
-        init();
-
-    </script>
-</body>
-</html>
+                    body { font-family: sans-serif;
