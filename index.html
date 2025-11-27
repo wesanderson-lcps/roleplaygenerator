@@ -29,7 +29,6 @@
         /* --- DECA Document Authenticity Styles --- */
         .deca-paper { font-family: 'Times New Roman', Times, serif; line-height: 1.3; color: #000; }
         
-        /* Official-looking Headers */
         .deca-paper h1 { 
             font-family: 'Arial', Helvetica, sans-serif;
             font-size: 24px; 
@@ -41,7 +40,6 @@
             letter-spacing: -0.5px;
         }
 
-        /* Section Headers (PARTICIPANT INSTRUCTIONS, etc.) */
         .deca-paper h2 { 
             font-family: 'Arial', Helvetica, sans-serif;
             font-size: 14px; 
@@ -52,7 +50,6 @@
             color: #000;
         }
 
-        /* Bold Labels within text */
         .deca-paper strong {
             font-family: 'Arial', Helvetica, sans-serif;
             font-weight: 800;
@@ -62,7 +59,6 @@
         .deca-paper ol { list-style-type: decimal; padding-left: 1.5em; margin-bottom: 1em; }
         .deca-paper p { margin-bottom: 1em; text-align: justify; }
         
-        /* Page Break Styling for Screen */
         .deca-paper hr {
             border: 0;
             border-top: 4px dashed #cbd5e1;
@@ -86,10 +82,26 @@
         .tool-output { font-family: 'Inter', sans-serif; }
         .tool-output h3 { font-weight: bold; margin-top: 1rem; margin-bottom: 0.5rem; color: #4b5563; }
         .tool-output ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 1rem; }
-        .tool-output table { width: 100%; border-collapse: collapse; margin-top: 1rem; font-size: 0.9em; }
-        .tool-output th, .tool-output td { border: 1px solid #000; padding: 0.75rem; text-align: left; vertical-align: middle; }
-        .tool-output th { background-color: #f3f4f6; font-weight: 600; color: #000; text-align: center; }
-        .tool-output td:not(:first-child) { text-align: center; }
+        
+        /* Specific Styles for Generated Rubric Tables */
+        .tool-output table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-top: 1rem; 
+            font-size: 0.85em; 
+            font-family: 'Arial', sans-serif;
+        }
+        .tool-output th, .tool-output td { 
+            border: 1px solid #000; 
+            padding: 0.5rem; 
+            text-align: center; 
+            vertical-align: middle; 
+        }
+        .tool-output th:first-child, .tool-output td:first-child {
+            text-align: left;
+            width: 40%;
+        }
+        .tool-output th { background-color: #f3f4f6; font-weight: 700; color: #000; }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen flex flex-col">
@@ -113,13 +125,7 @@
                     <h2 class="text-lg font-bold text-slate-800 mb-4 border-b pb-2">Configuration</h2>
                     
                     <div class="space-y-4">
-                        <!-- API Key Input -->
-                        <div class="bg-slate-50 p-3 rounded border border-slate-200">
-                            <label class="block text-xs font-bold text-slate-500 mb-1">GOOGLE API KEY (Required)</label>
-                            <input type="password" id="apiKeyInput" placeholder="Paste AIza... key here" class="w-full p-2 text-sm border border-slate-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                            <p class="text-[10px] text-slate-400 mt-1">Key is saved to your browser automatically. <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-blue-600 hover:text-blue-800 hover:underline font-bold">Get a free key here.</a> <span class="text-red-500 font-semibold ml-1">(Must use Personal Google Account, NOT School Account)</span></p>
-                        </div>
-
+                        
                         <!-- Career Cluster -->
                         <div>
                             <label class="block text-sm font-medium text-slate-600 mb-1">Career Cluster</label>
@@ -183,7 +189,7 @@
                         <i class="fas fa-file-alt text-4xl text-slate-300"></i>
                     </div>
                     <h3 class="text-xl font-semibold text-slate-600">No Scenario Generated</h3>
-                    <p class="text-center mt-2 max-w-xs">Enter your API Key, select your options, and click Generate.</p>
+                    <p class="text-center mt-2 max-w-xs">Select your options and click Generate.</p>
                 </div>
 
                 <!-- Loading State -->
@@ -265,6 +271,12 @@
     </footer>
 
     <script>
+        // --- API KEY CONFIGURATION ---
+        // SECURITY NOTE: This key is visible in the browser source code.
+        // You MUST restrict this key in Google Cloud Console to your specific domain (e.g., https://your-site.github.io/*)
+        // If you do not restrict it, anyone can copy and use your key.
+        const apiKey = "AIzaSyCN_5CLU9tcZAc7n3Ar-GMje7tE3c6gl0E"; // <--- PASTE YOUR AIza... KEY HERE
+
         // --- SAFE INITIALIZATION & DATA ---
         
         const clusters = {
@@ -293,23 +305,12 @@
         
         // --- SAFE DOM LOADING ---
         document.addEventListener('DOMContentLoaded', () => {
-            const apiKeyInput = document.getElementById('apiKeyInput');
             const clusterSelect = document.getElementById('clusterSelect');
             const eventSelect = document.getElementById('eventSelect');
             const areaSelect = document.getElementById('areaSelect');
             const generateBtn = document.getElementById('generateBtn');
 
-            // 1. Safe Local Storage Load
-            try {
-                const storedKey = localStorage.getItem('deca_api_key');
-                if (storedKey && apiKeyInput) {
-                    apiKeyInput.value = storedKey;
-                }
-            } catch (e) {
-                console.warn("Local storage access blocked. Key won't be saved.", e);
-            }
-
-            // 2. Populate Clusters
+            // 1. Populate Clusters
             if (clusterSelect) {
                 for (const cluster in clusters) {
                     const option = document.createElement('option');
@@ -319,13 +320,7 @@
                 }
             }
 
-            // 3. Event Listeners
-            if (apiKeyInput) {
-                apiKeyInput.addEventListener('input', (e) => {
-                    try { localStorage.setItem('deca_api_key', e.target.value.trim()); } catch (e) {}
-                });
-            }
-
+            // 2. Event Listeners
             if (clusterSelect) {
                 clusterSelect.addEventListener('change', (e) => {
                     const selectedCluster = e.target.value;
@@ -375,15 +370,14 @@
             const cluster = document.getElementById('clusterSelect').value;
             const eventName = document.getElementById('eventSelect').value;
             const instructionalArea = document.getElementById('areaSelect').value;
-            const userKey = document.getElementById('apiKeyInput').value.trim();
             const errorMsg = document.getElementById('errorMsg');
             const emptyState = document.getElementById('emptyState');
             const resultContainer = document.getElementById('resultContainer');
             const loadingState = document.getElementById('loadingState');
             const scenarioContent = document.getElementById('scenarioContent');
 
-            if (!userKey) {
-                showError("Please enter your Google API Key in the box above.");
+            if (!apiKey) {
+                showError("Configuration Error: The site owner has not configured the API Key.");
                 return;
             }
 
@@ -400,7 +394,7 @@
 
             try {
                 const prompt = createPrompt(cluster, eventName, instructionalArea);
-                const responseText = await callGeminiAPI(prompt, userKey);
+                const responseText = await callGeminiAPI(prompt);
                 
                 currentScenarioText = responseText;
                 const htmlContent = marked.parse(responseText);
@@ -445,7 +439,41 @@
             if (isTeamEvent) { p1 = "0-1-2-3"; p2 = "4-5-6"; p3 = "7-8"; p4 = "9-10"; }
             const s1 = "0-1"; const s2 = "2-3"; const s3 = "4"; const s4 = "5-6";
 
-            const prompt = `Create an official DECA Judge's Evaluation Form based on the scenario below. Follow standard Low-to-High scoring format.\n\n**COLUMNS:**\nDid the participant... | Little/No Value | Below Expectations | Meets Expectations | Exceeds Expectations | Judged Score\n\n**ROWS:**\n1. Extract PIs as questions. Use score columns: ${p1} | ${p2} | ${p3} | ${p4}\n2. **21st CENTURY SKILLS** (Bold Divider)\n- Reason effectively and use systems thinking? | ${s1} | ${s2} | ${s3} | ${s4} | \n- Make judgments and decisions, and solve problems? | ${s1} | ${s2} | ${s3} | ${s4} | \n- Communicate clearly? | ${s1} | ${s2} | ${s3} | ${s4} | \n- Show evidence of creativity? | ${s1} | ${s2} | ${s3} | ${s4} | \n- Overall impression? | ${s1} | ${s2} | ${s3} | ${s4} | \n\n**SCENARIO:**\n${currentScenarioText}`;
+            const prompt = `Create an official DECA Judge's Evaluation Form based on the scenario below. 
+            IT MUST MATCH THE EXACT FORMAT OF THE DECA 2025 SAMPLES.
+            
+            **HEADER:**
+            **JUDGE'S EVALUATION FORM**
+            **ASSOCIATION EVENT 1** (or similar)
+            **INSTRUCTIONAL AREA:** (Extract from scenario)
+            **Participant:** ______________   **ID Number:** ______________
+
+            **TABLE STRUCTURE:**
+            Create a strict Markdown table with exactly these columns:
+            | Did the participant: | Little/No Value | Below Expectations | Meets Expectations | Exceeds Expectations | Judged Score |
+            
+            **ROWS:**
+            1. **Performance Indicators:**
+               Extract each PI from the text and rephrase as a question (e.g. "Explain the nature of...?").
+               Fill the score columns with these EXACT strings (do not simplify):
+               - Col 2: ${p1}
+               - Col 3: ${p2}
+               - Col 4: ${p3}
+               - Col 5: ${p4}
+               - Col 6: (Blank)
+            
+            2. **21st Century Skills:**
+               Add a row "21st CENTURY SKILLS" spanning the first column.
+               Then add these exact rows:
+               - Reason effectively and use systems thinking? | ${s1} | ${s2} | ${s3} | ${s4} | |
+               - Make judgments and decisions, and solve problems? | ${s1} | ${s2} | ${s3} | ${s4} | |
+               - Communicate clearly? | ${s1} | ${s2} | ${s3} | ${s4} | |
+               - Show evidence of creativity? | ${s1} | ${s2} | ${s3} | ${s4} | |
+               - Overall impression and responses to the judge's questions? | ${s1} | ${s2} | ${s3} | ${s4} | |
+
+            **SCENARIO:**
+            ${currentScenarioText}`;
+            
             await runToolQuery(prompt);
         }
 
@@ -479,25 +507,18 @@
             const content = document.getElementById(elementId);
             const selection = window.getSelection();
             const range = document.createRange();
-            
             range.selectNodeContents(content);
             selection.removeAllRanges();
             selection.addRange(range);
-            
             try {
                 document.execCommand('copy');
-                
                 if(btnId) {
                     const btn = document.getElementById(btnId);
                     const orig = btn.innerHTML;
                     btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
                     setTimeout(() => btn.innerHTML = orig, 2000);
                 }
-            } catch (err) {
-                console.error('Copy failed', err);
-                alert("Failed to copy. Please select the text and copy manually.");
-            }
-            
+            } catch (err) { alert("Failed to copy."); }
             selection.removeAllRanges();
         }
 
@@ -523,26 +544,24 @@
             let piList = ""; 
             let judgeList = "";
             
-            // Generate numbered lists
             for(let i=1; i<=piCount; i++) {
-                // Just a simple numbered list in Markdown, the AI will fill the content
                 piList += `1. [Performance Indicator ${i}]\n`;
                 judgeList += `            ${i}.  **[Indicator ${i}]:** Did the participant...?\n`;
             }
 
-            // EXACT BOILERPLATE FROM 2025 DECA SAMPLES
-            const participantInstructions = `The event will be presented to you through your reading of the 21st Century Skills, Performance Indicators and Event Situation. You will have up to ${prepTime} to review this information and prepare your presentation. You may make notes to use during your presentation.\n\nYou will have up to ${presentTime} to make your presentation to the judge (you may have more than one judge).\n\nYou will be evaluated on how well you demonstrate the $21^{st}$ Century Skills and meet the performance indicators of this event.\n\nTurn in all of your notes and event materials when you have completed the event.`;
+            // EXACT 2025 BOILERPLATE 
+            const participantInstructions = `The event will be presented to you through your reading of the 21st Century Skills, Performance Indicators and Event Situation. You will have up to ${prepTime} to review this information and prepare your presentation. You may make notes to use during your presentation.\n\nYou will have up to ${presentTime} to make your presentation to the judge (you may have more than one judge).\n\nYou will be evaluated on how well you demonstrate the 21st Century Skills and meet the performance indicators of this event.\n\nTurn in all of your notes and event materials when you have completed the event.`;
 
-            // HARDCODED SKILLS LIST to match sample
+            // HARDCODED SKILLS LIST
             const skills21 = `* **Critical Thinking** – Reason effectively and use systems thinking.\n* **Problem Solving** – Make judgments and decisions and solve problems.\n* **Communication** – Communicate clearly.\n* **Creativity and Innovation** – Show evidence of creativity.`;
 
-            return `You are an expert writer for DECA competitive events. Your goal is to generate a role play that looks identical to an official DECA event sheet.\n\n` +
+            return `You are an expert writer for DECA competitive events. Your goal is to generate a role play that looks IDENTICAL to an official DECA 2025 event sheet.\n\n` +
             `**INPUTS:**\nCluster: ${cluster}\nEvent: ${eventName}\nInstructional Area: ${area}\n\n` +
-            `**STRICT OUTPUT FORMAT (Do not deviate):**\n` +
+            `**STRICT OUTPUT FORMAT:**\n` +
             `\n` +
             `# ${eventName.toUpperCase()}\n` +
             `**CAREER CLUSTER**\n${cluster}\n\n` +
-            `**CAREER PATHWAY**\n(Determine a suitable pathway based on the event, e.g., Merchandising, Management)\n\n` +
+            `**CAREER PATHWAY**\n(Choose a logical pathway e.g. Merchandising, Management)\n\n` +
             `**INSTRUCTIONAL AREA**\n${area}\n\n` +
             `---\n\n` +
             `## PARTICIPANT INSTRUCTIONS\n` +
@@ -550,7 +569,7 @@
             `## 21st CENTURY SKILLS\n` +
             `${skills21}\n\n` +
             `## PERFORMANCE INDICATORS\n` +
-            `${piList}\n` + // Use the loop variable
+            `${piList}\n` + 
             `(Generate exactly ${piCountText} PIs. ${areaLimitText} must be from ${area})\n\n` +
             `## EVENT SITUATION\n` +
             `You are to assume the role of [Role Title] at [Company Name], a [Company Description]. The judge is to assume the role of [Judge Role Title] at [Company Name].\n\n` +
@@ -571,8 +590,8 @@
             `1. [Question]\n2. [Question]\n3. [Question]`;
         }
 
-        async function callGeminiAPI(prompt, key) {
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${key}`;
+        async function callGeminiAPI(prompt) {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
             const payload = { contents: [{ parts: [{ text: prompt }] }] };
             
             let delay = 1000;
@@ -594,10 +613,9 @@
         }
         
         async function runToolQuery(prompt) {
-            const k = document.getElementById('apiKeyInput').value.trim();
-            if(!k) { alert("Enter API Key first."); return; }
+            if(!apiKey) { alert("Config Error: API Key not set in source code."); return; }
             try {
-                const r = await callGeminiAPI(prompt, k);
+                const r = await callGeminiAPI(prompt);
                 document.getElementById('toolContent').innerHTML = marked.parse(r);
                 document.getElementById('toolLoader').classList.add('hidden');
             } catch(e) {
