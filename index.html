@@ -15,14 +15,49 @@
         @media print {
             .no-print { display: none !important; }
             .print-only { display: block !important; }
-            body { background: white; color: black; }
-            .role-play-container { box-shadow: none; border: none; padding: 0; }
-            hr { break-after: page; border: 0; } 
+            body { background: white; color: black; margin: 0; padding: 0; }
             
-            table, th, td {
+            /* Main container print reset */
+            .role-play-container { 
+                box-shadow: none !important; 
+                border: none !important; 
+                padding: 0 !important; 
+                width: 100% !important; 
+                margin: 0 !important; 
+            }
+            
+            /* --- FORCE PAGE BREAKS --- */
+            hr { 
+                break-after: page; 
+                page-break-after: always; 
+                border: 0; 
+                margin: 0; 
+                padding: 0; 
+                height: 0;
+                visibility: hidden; 
+            }
+            
+            .deca-paper hr::after {
+                content: none !important;
+                display: none !important;
+            }
+            
+            h2 { 
+                margin-top: 0 !important; 
+                padding-top: 20px !important; 
+            }
+
+            table { border-collapse: collapse !important; width: 100% !important; }
+            th, td {
                 border: 1px solid black !important;
+                padding: 8px !important;
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
+            }
+            
+            @page {
+                margin: 1.5cm;
+                size: letter portrait;
             }
         }
 
@@ -83,7 +118,6 @@
         .tool-output h3 { font-weight: bold; margin-top: 1rem; margin-bottom: 0.5rem; color: #4b5563; }
         .tool-output ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 1rem; }
         
-        /* Specific Styles for Generated Rubric Tables */
         .tool-output table { 
             width: 100%; 
             border-collapse: collapse; 
@@ -272,10 +306,7 @@
 
     <script>
         // --- API KEY CONFIGURATION ---
-        // SECURITY NOTE: This key is visible in the browser source code.
-        // You MUST restrict this key in Google Cloud Console to your specific domain (e.g., https://your-site.github.io/*)
-        // If you do not restrict it, anyone can copy and use your key.
-        const apiKey = "AIzaSyCN_5CLU9tcZAc7n3Ar-GMje7tE3c6gl0E"; // <--- PASTE YOUR AIza... KEY HERE
+        const apiKey = "AIzaSyCN_5CLU9tcZAc7n3Ar-GMje7tE3c6gl0E"; 
 
         // --- SAFE INITIALIZATION & DATA ---
         
@@ -289,16 +320,61 @@
             "Personal Financial Literacy": ["Personal Financial Literacy Event"]
         };
 
-        const baCoreAreas = ["Business Law", "Communications", "Customer Relations", "Economics", "Emotional Intelligence", "Financial Analysis", "Human Resources Management", "Information Management", "Marketing", "Operations", "Professional Development", "Strategic Management"];
-
+        // --- EXAM BLUEPRINT ALIGNED INSTRUCTIONAL AREAS ---
         const clusterAreaMapping = {
-            "Business Administration Core": baCoreAreas,
-            "Business Management & Administration": [...baCoreAreas, "Knowledge Management", "Project Management", "Quality Management", "Risk Management"],
-            "Entrepreneurship": baCoreAreas,
-            "Finance": [...baCoreAreas, "Compliance", "Financial-Information Management", "Risk Management"],
-            "Hospitality & Tourism": [...baCoreAreas, "Distribution", "Revenue Management"],
-            "Marketing": [...baCoreAreas, "Channel Management", "Marketing-Information Management", "Market Planning", "Pricing", "Product/Service Management", "Promotion", "Selling"],
-            "Personal Financial Literacy": ["Earning Income", "Buying Goods and Services", "Saving", "Investing", "Credit and Debt", "Financial Decision Making", "Risk Management and Insurance"]
+            "Business Administration Core": [
+                "Business Law", "Communications", "Customer Relations", "Economics", 
+                "Emotional Intelligence", "Entrepreneurship", "Financial Analysis", 
+                "Human Resources Management", "Information Management", "Marketing", 
+                "Operations", "Professional Development", "Strategic Management"
+            ],
+            
+            "Business Management & Administration": [
+                "Business Law", "Communications", "Customer Relations", "Economics", 
+                "Emotional Intelligence", "Entrepreneurship", "Financial Analysis", 
+                "Human Resources Management", "Information Management", "Knowledge Management", 
+                "Marketing", "Operations", "Professional Development", "Project Management", 
+                "Quality Management", "Risk Management", "Strategic Management"
+            ],
+            
+            "Entrepreneurship": [
+                "Business Law", "Channel Management", "Communications", "Customer Relations", 
+                "Economics", "Emotional Intelligence", "Entrepreneurship", "Financial Analysis", 
+                "Human Resources Management", "Information Management", "Market Planning", 
+                "Marketing", "Marketing-Information Management", "Operations", "Pricing", 
+                "Product/Service Management", "Professional Development", "Promotion", 
+                "Quality Management", "Risk Management", "Selling", "Strategic Management"
+            ],
+            
+            "Finance": [
+                "Business Law", "Communications", "Customer Relations", "Economics", 
+                "Emotional Intelligence", "Entrepreneurship", "Financial Analysis", 
+                "Financial-Information Management", "Human Resources Management", 
+                "Information Management", "Marketing", "Operations", "Professional Development", 
+                "Risk Management", "Strategic Management"
+            ],
+            
+            "Hospitality & Tourism": [
+                "Business Law", "Communications", "Customer Relations", "Economics", 
+                "Emotional Intelligence", "Entrepreneurship", "Financial Analysis", 
+                "Human Resources Management", "Information Management", "Knowledge Management", 
+                "Market Planning", "Marketing", "Operations", "Pricing", 
+                "Product/Service Management", "Professional Development", "Promotion", 
+                "Quality Management", "Risk Management", "Selling", "Strategic Management"
+            ],
+            
+            "Marketing": [
+                "Business Law", "Channel Management", "Communications", "Customer Relations", 
+                "Economics", "Emotional Intelligence", "Entrepreneurship", "Financial Analysis", 
+                "Human Resources Management", "Information Management", "Market Planning", 
+                "Marketing", "Marketing-Information Management", "Operations", "Pricing", 
+                "Product/Service Management", "Professional Development", "Promotion", 
+                "Selling", "Strategic Management"
+            ],
+            
+            "Personal Financial Literacy": [
+                "Earning Income", "Spending", "Saving", "Investing", "Managing Credit", "Managing Risk"
+            ]
         };
 
         let currentScenarioText = "";
@@ -507,18 +583,25 @@
             const content = document.getElementById(elementId);
             const selection = window.getSelection();
             const range = document.createRange();
+            
             range.selectNodeContents(content);
             selection.removeAllRanges();
             selection.addRange(range);
+            
             try {
                 document.execCommand('copy');
+                
                 if(btnId) {
                     const btn = document.getElementById(btnId);
                     const orig = btn.innerHTML;
                     btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
                     setTimeout(() => btn.innerHTML = orig, 2000);
                 }
-            } catch (err) { alert("Failed to copy."); }
+            } catch (err) {
+                console.error('Copy failed', err);
+                alert("Failed to copy. Please select the text and copy manually.");
+            }
+            
             selection.removeAllRanges();
         }
 
@@ -528,7 +611,7 @@
             const content = document.getElementById('toolContent').innerHTML;
             const title = document.getElementById('toolTitle').innerText;
             const w = window.open('', '', 'height=600,width=800');
-            w.document.write(`<html><head><title>${title}</title><style>body{font-family:sans-serif;padding:40px;}table{width:100%;border-collapse:collapse;margin-top:20px;font-size:12px;-webkit-print-color-adjust:exact;print-color-adjust:exact;}th,td{border:1px solid black!important;padding:8px;text-align:left;}th{background:#f3f4f6;font-weight:bold;text-align:center;}td:not(:first-child){text-align:center;}</style></head><body><h1>${title}</h1>${content}</body></html>`);
+            w.document.write(`<html><head><title>${title}</title><style>body{font-family:sans-serif;padding:40px;}table{width:100%;border-collapse:collapse;margin-top:20px;font-size:12px;-webkit-print-color-adjust:exact;print-color-adjust:exact;}th,td{border:1px solid black!important;padding:8px;text-align:left;}th{background:#f3f4f6;font-weight:bold;text-align:center;}td:not(:first-child){text-align:center;}ul { margin-left: 20px; }</style></head><body><h1>${title}</h1>${content}</body></html>`);
             w.document.close();
             w.print();
         }
@@ -555,6 +638,7 @@
             // HARDCODED SKILLS LIST
             const skills21 = `* **Critical Thinking** – Reason effectively and use systems thinking.\n* **Problem Solving** – Make judgments and decisions and solve problems.\n* **Communication** – Communicate clearly.\n* **Creativity and Innovation** – Show evidence of creativity.`;
 
+            // Using single '---' for clean separation which CSS handles
             return `You are an expert writer for DECA competitive events. Your goal is to generate a role play that looks IDENTICAL to an official DECA 2025 event sheet.\n\n` +
             `**INPUTS:**\nCluster: ${cluster}\nEvent: ${eventName}\nInstructional Area: ${area}\n\n` +
             `**STRICT OUTPUT FORMAT:**\n` +
@@ -577,8 +661,6 @@
             `[Paragraph 2: The specific problem, conflict, or opportunity that needs addressing. Why is this meeting happening now?]\n\n` +
             `[Paragraph 3: The specific task. What must the participant explain, propose, or resolve?]\n\n` +
             `You will be meeting with the [Judge Role Title] in their office. The meeting will begin with your presentation.\n\n` +
-            `---\n` +
-            `*(Page Break for Judge's View)*\n` +
             `---\n` +
             `## JUDGE'S INSTRUCTIONS\n` +
             `**DIRECTIONS, INSTRUCTIONS, AND PROCEDURES**\n` +
