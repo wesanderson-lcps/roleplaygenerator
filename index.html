@@ -136,6 +136,8 @@
             width: 40%;
         }
         .tool-output th { background-color: #f3f4f6; font-weight: 700; color: #000; }
+        
+        .hidden-important { display: none !important; }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen flex flex-col">
@@ -159,7 +161,13 @@
                     <h2 class="text-lg font-bold text-slate-800 mb-4 border-b pb-2">Configuration</h2>
                     
                     <div class="space-y-4">
-                        
+                        <!-- API Key Input (Only shows if no key in code) -->
+                        <div id="apiKeyContainer" class="bg-slate-50 p-3 rounded border border-slate-200 hidden">
+                            <label class="block text-xs font-bold text-slate-500 mb-1">GOOGLE API KEY (Required)</label>
+                            <input type="password" id="apiKeyInput" placeholder="Paste AIza... key here" class="w-full p-2 text-sm border border-slate-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <p class="text-[10px] text-slate-400 mt-1">Key is saved to your browser automatically. <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-blue-600 hover:text-blue-800 hover:underline font-bold">Get a free key here.</a></p>
+                        </div>
+
                         <!-- Career Cluster -->
                         <div>
                             <label class="block text-sm font-medium text-slate-600 mb-1">Career Cluster</label>
@@ -326,64 +334,99 @@
             "Entrepreneurship": ["Entrepreneurship Series", "Entrepreneurship Team Decision Making"],
             "Finance": ["Accounting Applications Series", "Business Finance Series", "Financial Services Team Decision Making"],
             "Hospitality & Tourism": ["Hotel and Lodging Management Series", "Quick Serve Restaurant Management Series", "Restaurant and Food Service Management Series", "Travel and Tourism Team Decision Making", "Hospitality Services Team Decision Making"],
-            "Marketing": ["Apparel and Accessories Marketing Series", "Automotive Services Marketing Series", "Business Services Marketing Series", "Food Marketing Series", "Marketing Communications Series", "Marketing Management Team Decision Making", "Retail Merchandising Series", "Sports and Entertainment Marketing Series", "Sports and Entertainment Marketing Team Decision Making"],
+            "Marketing": ["Apparel and Accessories Marketing Series", "Automotive Services Marketing Series", "Business Services Marketing Series", "Buying and Merchandising Team Decision Making", "Food Marketing Series", "Marketing Communications Series", "Marketing Management Team Decision Making", "Retail Merchandising Series", "Sports and Entertainment Marketing Series", "Sports and Entertainment Marketing Team Decision Making"],
             "Personal Financial Literacy": ["Personal Financial Literacy Event"]
         };
 
+        // --- PATHWAY MAPPING DATABASE ---
+        const eventPathways = {
+            // -- NO CAREER PATHWAY --
+            // Principles Events
+            "Principles of Business Management": null,
+            "Principles of Entrepreneurship": null,
+            "Principles of Finance": null,
+            "Principles of Hospitality and Tourism": null,
+            "Principles of Marketing": null,
+            // Entrepreneurship
+            "Entrepreneurship Series": null,
+            "Entrepreneurship Team Decision Making": null,
+            // PFL
+            "Personal Financial Literacy Event": null,
+            // Team Events (Cluster Core)
+            "Business Law and Ethics Team Decision Making": null,
+            "Financial Services Team Decision Making": null,
+            "Hospitality Services Team Decision Making": null,
+            "Travel and Tourism Team Decision Making": null,
+            "Buying and Merchandising Team Decision Making": null,
+            "Marketing Management Team Decision Making": null,
+            "Sports and Entertainment Marketing Team Decision Making": null,
+
+            // -- BUSINESS MANAGEMENT & ADMIN --
+            "Human Resources Management Series": "Human Resources Management",
+
+            // -- FINANCE --
+            "Accounting Applications Series": "Accounting",
+            "Business Finance Series": "Corporate Finance",
+
+            // -- HOSPITALITY & TOURISM --
+            "Hotel and Lodging Management Series": "Lodging",
+            "Quick Serve Restaurant Management Series": "Restaurant Management",
+            "Restaurant and Food Service Management Series": "Restaurant Management",
+
+            // -- MARKETING --
+            "Apparel and Accessories Marketing Series": "Merchandising",
+            "Retail Merchandising Series": "Merchandising",
+            "Automotive Services Marketing Series": "Marketing Management",
+            "Business Services Marketing Series": "Marketing Management",
+            "Food Marketing Series": "Marketing Management",
+            "Sports and Entertainment Marketing Series": "Marketing Management",
+            "Marketing Communications Series": "Marketing Communications"
+        };
+
         // --- EXAM BLUEPRINT ALIGNED INSTRUCTIONAL AREAS ---
+        const core11 = [
+            "Business Law", "Communications", "Customer Relations", "Economics", 
+            "Emotional Intelligence", "Entrepreneurship", "Financial Analysis", 
+            "Human Resources Management", "Information Management", "Marketing", 
+            "Operations", "Professional Development", "Strategic Management"
+        ];
+
         const clusterAreaMapping = {
-            "Business Administration Core": [
-                "Business Law", "Communications", "Customer Relations", "Economics", 
-                "Emotional Intelligence", "Entrepreneurship", "Financial Analysis", 
-                "Human Resources Management", "Information Management", "Marketing", 
-                "Operations", "Professional Development", "Strategic Management"
-            ],
+            "Business Administration Core": core11,
             
             "Business Management & Administration": [
-                "Business Law", "Communications", "Customer Relations", "Economics", 
-                "Emotional Intelligence", "Entrepreneurship", "Financial Analysis", 
-                "Human Resources Management", "Information Management", "Knowledge Management", 
-                "Marketing", "Operations", "Professional Development", "Project Management", 
-                "Quality Management", "Risk Management", "Strategic Management"
+                ...core11, 
+                "Knowledge Management", "Project Management", "Quality Management", "Risk Management"
             ],
             
             "Entrepreneurship": [
-                "Business Law", "Channel Management", "Communications", "Customer Relations", 
-                "Economics", "Emotional Intelligence", "Entrepreneurship", "Financial Analysis", 
-                "Human Resources Management", "Information Management", "Market Planning", 
-                "Marketing", "Marketing-Information Management", "Operations", "Pricing", 
-                "Product/Service Management", "Professional Development", "Promotion", 
-                "Quality Management", "Risk Management", "Selling", "Strategic Management"
+                ...core11,
+                "Channel Management", "Market Planning", "Marketing-Information Management", 
+                "Pricing", "Product/Service Management", "Promotion", "Quality Management", 
+                "Risk Management", "Selling"
             ],
             
             "Finance": [
-                "Business Law", "Communications", "Customer Relations", "Economics", 
-                "Emotional Intelligence", "Entrepreneurship", "Financial Analysis", 
-                "Financial-Information Management", "Human Resources Management", 
-                "Information Management", "Marketing", "Operations", "Professional Development", 
-                "Risk Management", "Strategic Management"
+                ...core11,
+                "Compliance", "Financial-Information Management", "Risk Management"
             ],
             
             "Hospitality & Tourism": [
-                "Business Law", "Communications", "Customer Relations", "Economics", 
-                "Emotional Intelligence", "Entrepreneurship", "Financial Analysis", 
-                "Human Resources Management", "Information Management", "Knowledge Management", 
-                "Market Planning", "Marketing", "Operations", "Pricing", 
-                "Product/Service Management", "Professional Development", "Promotion", 
-                "Quality Management", "Risk Management", "Selling", "Strategic Management"
+                ...core11,
+                "Distribution", "Knowledge Management", "Market Planning", "Pricing", 
+                "Product/Service Management", "Promotion", "Quality Management", 
+                "Risk Management", "Selling"
             ],
             
             "Marketing": [
-                "Business Law", "Channel Management", "Communications", "Customer Relations", 
-                "Economics", "Emotional Intelligence", "Entrepreneurship", "Financial Analysis", 
-                "Human Resources Management", "Information Management", "Market Planning", 
-                "Marketing", "Marketing-Information Management", "Operations", "Pricing", 
-                "Product/Service Management", "Professional Development", "Promotion", 
-                "Selling", "Strategic Management"
+                ...core11,
+                "Channel Management", "Market Planning", "Marketing-Information Management", 
+                "Pricing", "Product/Service Management", "Promotion", "Selling"
             ],
             
             "Personal Financial Literacy": [
-                "Earning Income", "Spending", "Saving", "Investing", "Managing Credit", "Managing Risk"
+                "Earning Income", "Spending", "Saving", "Investing", 
+                "Managing Credit", "Managing Risk" 
             ]
         };
 
@@ -391,12 +434,35 @@
         
         // --- SAFE DOM LOADING ---
         document.addEventListener('DOMContentLoaded', () => {
+            const apiKeyInput = document.getElementById('apiKeyInput');
+            const apiKeyContainer = document.getElementById('apiKeyContainer');
             const clusterSelect = document.getElementById('clusterSelect');
             const eventSelect = document.getElementById('eventSelect');
             const areaSelect = document.getElementById('areaSelect');
             const generateBtn = document.getElementById('generateBtn');
 
-            // 1. Populate Clusters
+            // 1. API Key UI Logic
+            if (!apiKey) {
+                // No hardcoded key? Show the input box
+                apiKeyContainer.classList.remove('hidden');
+                // Try load from local storage
+                try {
+                    const storedKey = localStorage.getItem('deca_api_key');
+                    if (storedKey && apiKeyInput) {
+                        apiKeyInput.value = storedKey;
+                    }
+                } catch (e) {
+                    console.warn("Local storage access blocked.", e);
+                }
+                // Save listener
+                if (apiKeyInput) {
+                    apiKeyInput.addEventListener('input', (e) => {
+                        try { localStorage.setItem('deca_api_key', e.target.value.trim()); } catch (e) {}
+                    });
+                }
+            }
+
+            // 2. Populate Clusters
             if (clusterSelect) {
                 for (const cluster in clusters) {
                     const option = document.createElement('option');
@@ -406,7 +472,7 @@
                 }
             }
 
-            // 2. Event Listeners
+            // 3. Event Listeners
             if (clusterSelect) {
                 clusterSelect.addEventListener('change', (e) => {
                     const selectedCluster = e.target.value;
@@ -462,8 +528,11 @@
             const loadingState = document.getElementById('loadingState');
             const scenarioContent = document.getElementById('scenarioContent');
 
-            if (!apiKey) {
-                showError("Configuration Error: The site owner has not configured the API Key.");
+            // Determine key to use (Hardcoded OR Input)
+            const userKey = apiKey || document.getElementById('apiKeyInput').value.trim();
+
+            if (!userKey) {
+                showError("Please enter your Google API Key in the box above.");
                 return;
             }
 
@@ -472,7 +541,10 @@
                 return;
             }
 
-            // Handle RANDOM Selection
+            // Look up specific pathway (can be null)
+            const pathway = eventPathways[eventName]; 
+
+            // Handle RANDOM Selection logic
             if (instructionalArea === 'Random') {
                 const availableAreas = clusterAreaMapping[cluster];
                 if (availableAreas && availableAreas.length > 0) {
@@ -488,8 +560,8 @@
             closeToolOutput(); 
 
             try {
-                const prompt = createPrompt(cluster, eventName, instructionalArea);
-                const responseText = await callGeminiAPI(prompt);
+                const prompt = createPrompt(cluster, eventName, instructionalArea, pathway);
+                const responseText = await callGeminiAPI(prompt, userKey);
                 
                 currentScenarioText = responseText;
                 const htmlContent = marked.parse(responseText);
@@ -520,54 +592,63 @@
         async function handleIdentifyTiers() {
             if (!currentScenarioText) return;
             showTool("PI Tier Breakdown");
-            const prompt = `Analyze the Performance Indicators (PIs) listed in the following DECA Role Play scenario. For each PI found in the text, identify:\n1. The PI Text.\n2. The **Instructional Area** it belongs to.\n3. The **Tier** it likely falls under (Tier 1: Business Admin Core, Tier 2: Cluster Core, Tier 3: Pathway Specific).\n\nSCENARIO:\n${currentScenarioText}\n\nFormat as a clean Markdown Table.`;
+            const prompt = `Analyze the Performance Indicators (PIs) listed in the following DECA Role Play scenario. For each PI found in the text, identify:\n1. The PI Text.\n2. The **Instructional Area** it belongs to (e.g., Economics, Marketing, etc.).\n3. The **Tier** it likely falls under in the DECA curriculum framework: Tier 1 (Core), Tier 2 (Cluster), or Tier 3 (Pathway).\n\nSCENARIO:\n${currentScenarioText}\n\nFormat the output as a clean Markdown Table with columns: PI Description, Instructional Area, and Tier.`;
             await runToolQuery(prompt);
         }
 
         async function handleJudgesRubric() {
             if (!currentScenarioText) return;
             showTool("Judge's Evaluation Form");
+            
+            // Determine event type from the UI state
             const eventName = document.getElementById('eventSelect').value;
             const isTeamEvent = eventName.includes("Team Decision Making");
             
+            // Define Exact Number Lists (Low to High as per PDF)
             let p1 = "0-1-2-3-4"; let p2 = "5-6-7-8"; let p3 = "9-10-11"; let p4 = "12-13-14";
             if (isTeamEvent) { p1 = "0-1-2-3"; p2 = "4-5-6"; p3 = "7-8"; p4 = "9-10"; }
             const s1 = "0-1"; const s2 = "2-3"; const s3 = "4"; const s4 = "5-6";
 
-            const prompt = `Create an official DECA Judge's Evaluation Form based on the scenario below. 
-            IT MUST MATCH THE EXACT FORMAT OF THE DECA 2025 SAMPLES.
-            
-            **HEADER:**
-            **JUDGE'S EVALUATION FORM**
-            **ASSOCIATION EVENT 1** (or similar)
-            **INSTRUCTIONAL AREA:** (Extract from scenario)
-            **Participant:** ______________   **ID Number:** ______________
+            const prompt = `
+                Create an official DECA Judge's Evaluation Form based on the scenario text below.
+                It must strictly follow the format of the official DECA score sheet (Low score left, High score right).
+                
+                **HEADER INFO:**
+                **JUDGE'S EVALUATION FORM**
+                **INSTRUCTIONAL AREA:** (Extract from scenario)
+                **Participant:** _________________   **ID Number:** _________________
 
-            **TABLE STRUCTURE:**
-            Create a strict Markdown table with exactly these columns:
-            | Did the participant: | Little/No Value | Below Expectations | Meets Expectations | Exceeds Expectations | Judged Score |
-            
-            **ROWS:**
-            1. **Performance Indicators:**
-               Extract each PI from the text and rephrase as a question (e.g. "Explain the nature of...?").
-               Fill the score columns with these EXACT strings (do not simplify):
-               - Col 2: ${p1}
-               - Col 3: ${p2}
-               - Col 4: ${p3}
-               - Col 5: ${p4}
-               - Col 6: (Blank)
-            
-            2. **21st Century Skills:**
-               Add a row "21st CENTURY SKILLS" spanning the first column.
-               Then add these exact rows:
-               - Reason effectively and use systems thinking? | ${s1} | ${s2} | ${s3} | ${s4} | |
-               - Make judgments and decisions, and solve problems? | ${s1} | ${s2} | ${s3} | ${s4} | |
-               - Communicate clearly? | ${s1} | ${s2} | ${s3} | ${s4} | |
-               - Show evidence of creativity? | ${s1} | ${s2} | ${s3} | ${s4} | |
-               - Overall impression and responses to the judge's questions? | ${s1} | ${s2} | ${s3} | ${s4} | |
+                **TABLE STRUCTURE:**
+                Create a single Markdown table.
+                
+                **Columns:**
+                | Did the participant: | Little/No Value | Below Expectations | Meets Expectations | Exceeds Expectations | Judged Score |
+                | --- | :---: | :---: | :---: | :---: | :---: |
 
-            **SCENARIO:**
-            ${currentScenarioText}`;
+                **Rows to Generate:**
+                1. **Performance Indicators:**
+                   - Extract each PI from the text and phrase it as a question.
+                   - **CRITICAL:** Fill the score columns with these EXACT strings:
+                     - Little/No Value: ${p1}
+                     - Below Expectations: ${p2}
+                     - Meets Expectations: ${p3}
+                     - Exceeds Expectations: ${p4}
+                   - Leave "Judged Score" blank.
+                
+                2. **21st Century Skills (Add a bold Divider Row):**
+                   - **21st CENTURY SKILLS** | | | | | |
+                   - Reason effectively and use systems thinking? | ${s1} | ${s2} | ${s3} | ${s4} | |
+                   - Make judgments and decisions, and solve problems? | ${s1} | ${s2} | ${s3} | ${s4} | |
+                   - Communicate clearly? | ${s1} | ${s2} | ${s3} | ${s4} | |
+                   - Show evidence of creativity? | ${s1} | ${s2} | ${s3} | ${s4} | |
+                   - Overall impression and responses to the judge's questions? | ${s1} | ${s2} | ${s3} | ${s4} | |
+
+                **FOOTER:**
+                **TOTAL SCORE (100)**: ___________
+
+                **SCENARIO:**
+                ${currentScenarioText}
+            `;
             
             await runToolQuery(prompt);
         }
@@ -575,14 +656,38 @@
         async function handleVisualAids() {
             if (!currentScenarioText) return;
             showTool("Visual Aid Suggestions");
-            const prompt = `Suggest 3 distinct and impressive visual aids (charts, graphs, agendas) the student should draw on paper for this scenario. Describe appearance and purpose.\n\nSCENARIO:\n${currentScenarioText}\n\nFormat as Markdown list.`;
+            
+            const prompt = `
+                DECA students are encouraged to draw visual aids (charts, graphs, agendas) during their prep time to show the judge.
+                Based on the scenario below, suggest 3 distinct and impressive visual aids the student should draw on paper.
+                Describe what each should look like and why it helps their argument.
+
+                SCENARIO:
+                ${currentScenarioText}
+
+                Format as a Markdown list.
+            `;
+            
             await runToolQuery(prompt);
         }
 
         async function handleSampleResponse() {
             if (!currentScenarioText) return;
             showTool("Sample Pitch Outline");
-            const prompt = `Act as a DECA International Winner. Write a high-level outline of a winning presentation for this scenario. Include Hook, Main Points (addressing PIs), and Closing.\n\nSCENARIO:\n${currentScenarioText}`;
+            
+            const prompt = `
+                Act as a DECA International Winner. Based on the scenario below, write a high-level outline of a winning presentation/pitch.
+                Include:
+                1. A creative introduction/hook.
+                2. Main body points that address the Performance Indicators.
+                3. A strong closing statement.
+                
+                Keep it structured as an outline, not a full script.
+
+                SCENARIO:
+                ${currentScenarioText}
+            `;
+            
             await runToolQuery(prompt);
         }
 
@@ -612,9 +717,12 @@
                 
                 if(btnId) {
                     const btn = document.getElementById(btnId);
-                    const orig = btn.innerHTML;
+                    const originalHTML = btn.innerHTML;
                     btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
                     setTimeout(() => btn.innerHTML = originalHTML, 2000);
+                } else {
+                    // If no button ID, standard alert or just silent success
+                    // Optional: Generic Toast here
                 }
             } catch (err) {
                 console.error('Copy failed', err);
@@ -635,7 +743,7 @@
             w.print();
         }
 
-        function createPrompt(cluster, eventName, area) {
+        function createPrompt(cluster, eventName, area, pathway) {
             const isTeamEvent = eventName.includes("Team Decision Making");
             const piCount = isTeamEvent ? 7 : 5;
             const piCountText = isTeamEvent ? "exactly 7" : "exactly 5";
@@ -644,27 +752,27 @@
             const presentTime = isTeamEvent ? "15 minutes" : "10 minutes";
 
             let piList = ""; 
-            let judgeList = "";
-            
             for(let i=1; i<=piCount; i++) {
                 piList += `1. [Performance Indicator ${i}]\n`;
-                judgeList += `            ${i}.  **[Indicator ${i}]:** Did the participant...?\n`;
             }
 
-            // EXACT 2025 BOILERPLATE 
             const participantInstructions = `The event will be presented to you through your reading of the 21st Century Skills, Performance Indicators and Event Situation. You will have up to ${prepTime} to review this information and prepare your presentation. You may make notes to use during your presentation.\n\nYou will have up to ${presentTime} to make your presentation to the judge (you may have more than one judge).\n\nYou will be evaluated on how well you demonstrate the 21st Century Skills and meet the performance indicators of this event.\n\nTurn in all of your notes and event materials when you have completed the event.`;
 
-            // HARDCODED SKILLS LIST
             const skills21 = `* **Critical Thinking** – Reason effectively and use systems thinking.\n* **Problem Solving** – Make judgments and decisions and solve problems.\n* **Communication** – Communicate clearly.\n* **Creativity and Innovation** – Show evidence of creativity.`;
 
-            // Using single '---' for clean separation which CSS handles
+            // Logic to conditionally render Pathway
+            let pathwaySection = "";
+            if (pathway) {
+                pathwaySection = `**CAREER PATHWAY**\n${pathway}\n\n`;
+            }
+
             return `You are an expert writer for DECA competitive events. Your goal is to generate a role play that looks IDENTICAL to an official DECA 2025 event sheet.\n\n` +
-            `**INPUTS:**\nCluster: ${cluster}\nEvent: ${eventName}\nInstructional Area: ${area}\n\n` +
+            `**INPUTS:**\nCluster: ${cluster}\nEvent: ${eventName}\nPathway: ${pathway}\nInstructional Area: ${area}\n\n` +
             `**STRICT OUTPUT FORMAT:**\n` +
             `\n` +
             `# ${eventName.toUpperCase()}\n` +
             `**CAREER CLUSTER**\n${cluster}\n\n` +
-            `**CAREER PATHWAY**\n(Choose a logical pathway e.g. Merchandising, Management)\n\n` +
+            pathwaySection +
             `**INSTRUCTIONAL AREA**\n${area}\n\n` +
             `---\n\n` +
             `## PARTICIPANT INSTRUCTIONS\n` +
@@ -691,8 +799,8 @@
             `1. [Question]\n2. [Question]\n3. [Question]`;
         }
 
-        async function callGeminiAPI(prompt) {
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+        async function callGeminiAPI(prompt, key) {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${key}`;
             const payload = { contents: [{ parts: [{ text: prompt }] }] };
             
             let delay = 1000;
@@ -714,9 +822,10 @@
         }
         
         async function runToolQuery(prompt) {
-            if(!apiKey) { alert("Config Error: API Key not set in source code."); return; }
+            const userKey = apiKey || document.getElementById('apiKeyInput').value.trim();
+            if(!userKey) { alert("Please enter API Key."); return; }
             try {
-                const r = await callGeminiAPI(prompt);
+                const r = await callGeminiAPI(prompt, userKey);
                 document.getElementById('toolContent').innerHTML = marked.parse(r);
                 document.getElementById('toolLoader').classList.add('hidden');
             } catch(e) {
