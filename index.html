@@ -27,17 +27,25 @@
             }
             
             /* --- FORCE PAGE BREAKS --- */
-            /* Force break BEFORE Judge's Instructions */
-            h2[id^="judge"], h2:contains("JUDGE'S INSTRUCTIONS") { 
+            
+            /* 1. Event Situation starts on Page 2 */
+            h2:contains("EVENT SITUATION"),
+            h2[id^="event-situation"] { 
                 break-before: page !important; 
                 page-break-before: always !important; 
                 margin-top: 0 !important;
                 padding-top: 40px !important;
             }
 
-            /* For the Rubric (Evaluation Form) - Ensure it fits or breaks cleanly if needed */
-            /* But typically Judge's Instructions + Rubric fit on Page 2 (or 3 for Team events) */
-            
+            /* 2. Judge's Instructions start on Page 3 */
+            h2:contains("JUDGE'S INSTRUCTIONS"),
+            h2[id^="judges-instructions"] { 
+                break-before: page !important; 
+                page-break-before: always !important; 
+                margin-top: 0 !important;
+                padding-top: 40px !important;
+            }
+
             /* Hide the visual HR divider in print */
             hr { display: none !important; }
             .deca-paper hr::after { display: none !important; }
