@@ -27,50 +27,48 @@
             }
             
             /* --- FORCE PAGE BREAKS --- */
-            /* Target h2 for "JUDGE'S INSTRUCTIONS" page break */
-            h2[id^="judges-instructions"] {
-                break-before: page;
-                page-break-before: always;
+            /* Force break BEFORE Judge's Instructions */
+            h2[id^="judge"], h2:contains("JUDGE'S INSTRUCTIONS") { 
+                break-before: page !important; 
+                page-break-before: always !important; 
                 margin-top: 0 !important;
-                padding-top: 20px !important; 
+                padding-top: 40px !important;
             }
 
-            /* This targets the HR tag specifically for paging if used as a marker */
-            hr { 
-                break-after: page; 
-                page-break-after: always; 
-                border: 0; 
-                margin: 0; 
-                padding: 0; 
-                height: 0;
-                visibility: hidden; 
-            }
+            /* For the Rubric (Evaluation Form) - Ensure it fits or breaks cleanly if needed */
+            /* But typically Judge's Instructions + Rubric fit on Page 2 (or 3 for Team events) */
             
-            .deca-paper hr::after {
-                content: none !important;
-                display: none !important;
-            }
+            /* Hide the visual HR divider in print */
+            hr { display: none !important; }
+            .deca-paper hr::after { display: none !important; }
             
-            h2 { 
-                margin-top: 0 !important; 
-                padding-top: 20px !important; 
-            }
+            /* Ensure Headers look right on print */
+            h1 { font-size: 24px !important; margin-bottom: 20px !important; }
+            h2 { font-size: 14px !important; border-bottom: 2px solid black !important; margin-top: 20px !important; }
+            h3 { font-size: 12px !important; margin-top: 15px !important; }
 
-            table { border-collapse: collapse !important; width: 100% !important; }
+            /* Table Styling for Print */
+            table { 
+                border-collapse: collapse !important; 
+                width: 100% !important; 
+                margin-top: 15px !important;
+            }
             th, td {
                 border: 1px solid black !important;
-                padding: 8px !important;
+                padding: 4px 8px !important;
+                font-size: 10pt !important; 
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
             }
+            th { background-color: #f3f4f6 !important; font-weight: bold; }
             
             @page {
-                margin: 1.5cm;
+                margin: 1cm; 
                 size: letter portrait;
             }
         }
 
-        /* --- DECA Document Authenticity Styles --- */
+        /* --- DECA Document Authenticity Styles (Screen) --- */
         .deca-paper { font-family: 'Times New Roman', Times, serif; line-height: 1.3; color: #000; }
         
         .deca-paper h1 { 
@@ -91,7 +89,18 @@
             text-transform: uppercase;
             margin-top: 1.5rem; 
             margin-bottom: 0.5rem; 
+            border-bottom: 2px solid #000; 
+            padding-bottom: 2px;
             color: #000;
+        }
+
+        .deca-paper h3 {
+            font-family: 'Arial', Helvetica, sans-serif;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-top: 1rem;
+            margin-bottom: 0.25rem;
         }
 
         .deca-paper strong {
@@ -123,6 +132,7 @@
             font-weight: bold;
         }
 
+        /* Tool Output Styles */
         .tool-output { font-family: 'Inter', sans-serif; }
         .tool-output h3 { font-weight: bold; margin-top: 1rem; margin-bottom: 0.5rem; color: #4b5563; }
         .tool-output ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 1rem; }
