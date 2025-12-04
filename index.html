@@ -6,6 +6,8 @@
     <title>DECA Role Play Generator</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- html2pdf Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
@@ -138,6 +140,14 @@
             font-family: sans-serif;
             font-size: 12px;
             font-weight: bold;
+        }
+        
+        /* Fix for Page Break Divs (Injected via Logic) */
+        .print-break {
+            break-before: page;
+            page-break-before: always;
+            height: 1px;
+            display: block;
         }
 
         /* Tool Output Styles */
@@ -322,11 +332,14 @@
 
                     <!-- Toolbar -->
                     <div class="flex justify-end gap-2 no-print">
+                        <button id="downloadPdfBtn" onclick="downloadPdf()" class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 px-3 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
+                             <i class="fas fa-file-pdf"></i> Save as PDF
+                        </button>
                         <button id="mainCopyBtn" onclick="copyToClipboard('scenarioContent', 'mainCopyBtn')" class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 px-3 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
                             <i class="fas fa-copy"></i> Copy
                         </button>
                         <button onclick="window.print()" class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 px-3 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
-                            <i class="fas fa-print"></i> Print Role Play
+                            <i class="fas fa-print"></i> Print
                         </button>
                     </div>
 
@@ -368,18 +381,14 @@
         // --- PATHWAY MAPPING DATABASE ---
         const eventPathways = {
             // -- NO CAREER PATHWAY --
-            // Principles Events
             "Principles of Business Management": null,
             "Principles of Entrepreneurship": null,
             "Principles of Finance": null,
             "Principles of Hospitality and Tourism": null,
             "Principles of Marketing": null,
-            // Entrepreneurship
             "Entrepreneurship Series": null,
             "Entrepreneurship Team Decision Making": null,
-            // PFL
             "Personal Financial Literacy Event": null,
-            // Team Events (Cluster Core)
             "Business Law and Ethics Team Decision Making": null,
             "Financial Services Team Decision Making": null,
             "Hospitality Services Team Decision Making": null,
@@ -769,6 +778,24 @@
             w.document.close();
             w.print();
         }
+        
+        function downloadPdf() {
+            const element = document.getElementById('scenarioContent');
+            // Cloning the element to not affect the view
+            const clone = element.cloneNode(true);
+            
+            // Basic PDF options
+            const opt = {
+              margin:       [0.5, 0.5], // 0.5 inch margins
+              filename:     'DECA_Role_Play.pdf',
+              image:        { type: 'jpeg', quality: 0.98 },
+              html2canvas:  { scale: 2 }, // Higher scale for better quality
+              jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+            
+            // Generate PDF
+            html2pdf().set(opt).from(clone).save();
+        }
 
         function createPrompt(cluster, eventName, area, pathway) {
             const isTeamEvent = eventName.includes("Team Decision Making");
@@ -793,6 +820,7 @@
                 pathwaySection = `**CAREER PATHWAY**\n${pathway}\n\n`;
             }
 
+            // Using HTML comments to force breaks if pure CSS classes fail in some renderers, but sticking to div class injection is best
             return `You are an expert writer for DECA competitive events. Your goal is to generate a role play that looks IDENTICAL to an official DECA 2025 event sheet.\n\n` +
             `**INPUTS:**\nCluster: ${cluster}\nEvent: ${eventName}\nPathway: ${pathway}\nInstructional Area: ${area}\n\n` +
             `**STRICT OUTPUT FORMAT:**\n` +
@@ -809,13 +837,16 @@
             `## PERFORMANCE INDICATORS\n` +
             `${piList}\n` + 
             `(Generate exactly ${piCountText} PIs. ${areaLimitText} must be from ${area})\n\n` +
+            // INJECT PAGE BREAK HERE FOR PAGE 2
+            `<div class="print-break"></div>\n\n` +
             `## EVENT SITUATION\n` +
             `You are to assume the role of [Role Title] at [Company Name], a [Company Description]. The judge is to assume the role of [Judge Role Title] at [Company Name].\n\n` +
             `[Paragraph 1: Detailed background of the business, current market situation, or specific project context. Be specific about the industry.]\n\n` +
             `[Paragraph 2: The specific problem, conflict, or opportunity that needs addressing. Why is this meeting happening now?]\n\n` +
             `[Paragraph 3: The specific task. What must the participant explain, propose, or resolve?]\n\n` +
             `You will be meeting with the [Judge Role Title] in their office. The meeting will begin with your presentation.\n\n` +
-            `---\n` +
+            // INJECT PAGE BREAK HERE FOR PAGE 3
+            `<div class="print-break"></div>\n\n` +
             `## JUDGE'S INSTRUCTIONS\n` +
             `**DIRECTIONS, INSTRUCTIONS, AND PROCEDURES**\n` +
             `* Observe the participant's presentation.\n* Do not interrupt the participant's presentation.\n* You may ask questions after the participant has finished.\n\n` +
