@@ -27,6 +27,15 @@
             }
             
             /* --- FORCE PAGE BREAKS --- */
+            /* Target h2 for "JUDGE'S INSTRUCTIONS" page break */
+            h2[id^="judges-instructions"] {
+                break-before: page;
+                page-break-before: always;
+                margin-top: 0 !important;
+                padding-top: 20px !important; 
+            }
+
+            /* This targets the HR tag specifically for paging if used as a marker */
             hr { 
                 break-after: page; 
                 page-break-after: always; 
