@@ -6,8 +6,6 @@
     <title>DECA Role Play Generator</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <!-- html2pdf Library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
@@ -17,111 +15,64 @@
         @media print {
             .no-print { display: none !important; }
             .print-only { display: block !important; }
-            body { background: white; color: black; margin: 0; padding: 0; }
+            body { background: white; color: black; }
+            .role-play-container { box-shadow: none; border: none; padding: 0; }
+            /* Ensure page break happens cleanly */
+            hr { break-after: page; border: 0; } 
             
-            /* Main container print reset */
-            .role-play-container { 
-                box-shadow: none !important; 
-                border: none !important; 
-                padding: 0 !important; 
-                width: 100% !important; 
-                margin: 0 !important; 
-            }
-            
-            /* --- FORCE PAGE BREAKS --- */
-            
-            /* 1. Event Situation starts on Page 2 */
-            h2:contains("EVENT SITUATION"),
-            h2[id^="event-situation"] { 
-                break-before: page !important; 
-                page-break-before: always !important; 
-                margin-top: 0 !important;
-                padding-top: 40px !important;
-            }
-
-            /* 2. Judge's Instructions start on Page 3 */
-            h2:contains("JUDGE'S INSTRUCTIONS"),
-            h2[id^="judges-instructions"] { 
-                break-before: page !important; 
-                page-break-before: always !important; 
-                margin-top: 0 !important;
-                padding-top: 40px !important;
-            }
-
-            /* Hide the visual HR divider in print */
-            hr { display: none !important; }
-            .deca-paper hr::after { display: none !important; }
-            
-            /* Ensure Headers look right on print */
-            h1 { font-size: 24px !important; margin-bottom: 20px !important; }
-            h2 { font-size: 14px !important; border-bottom: 2px solid black !important; margin-top: 20px !important; }
-            h3 { font-size: 12px !important; margin-top: 15px !important; }
-
-            /* Table Styling for Print */
-            table { 
-                border-collapse: collapse !important; 
-                width: 100% !important; 
-                margin-top: 15px !important;
-            }
-            th, td {
+            /* Force printing of background colors and borders */
+            table, th, td {
                 border: 1px solid black !important;
-                padding: 4px 8px !important;
-                font-size: 10pt !important; 
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
             }
-            th { background-color: #f3f4f6 !important; font-weight: bold; }
-            
-            @page {
-                margin: 1cm; 
-                size: letter portrait;
-            }
         }
 
-        /* --- DECA Document Authenticity Styles (Screen) --- */
-        .deca-paper { font-family: 'Times New Roman', Times, serif; line-height: 1.3; color: #000; }
+        /* --- DECA Document Authenticity Styles --- */
+        .deca-paper {
+            font-family: 'Times New Roman', Times, serif;
+            line-height: 1.3;
+            color: #000;
+        }
         
+        /* Official-looking Headers */
         .deca-paper h1 { 
             font-family: 'Arial', Helvetica, sans-serif;
             font-size: 24px; 
             font-weight: 900; 
             text-transform: uppercase;
             text-align: center;
-            margin-bottom: 1.5rem;
+            margin-bottom: 2rem;
             color: #000;
             letter-spacing: -0.5px;
         }
 
         .deca-paper h2 { 
             font-family: 'Arial', Helvetica, sans-serif;
-            font-size: 14px; 
+            font-size: 16px; 
             font-weight: 800; 
+            text-transform: uppercase;
+            margin-top: 2rem; 
+            margin-bottom: 1rem; 
+            border-bottom: 2px solid #000; /* The distinct black bar */
+            padding-bottom: 4px;
+        }
+
+        .deca-paper h3 { 
+            font-family: 'Arial', Helvetica, sans-serif;
+            font-size: 14px; 
+            font-weight: 700; 
             text-transform: uppercase;
             margin-top: 1.5rem; 
             margin-bottom: 0.5rem; 
-            border-bottom: 2px solid #000; 
-            padding-bottom: 2px;
-            color: #000;
         }
 
-        .deca-paper h3 {
-            font-family: 'Arial', Helvetica, sans-serif;
-            font-size: 12px;
-            font-weight: 700;
-            text-transform: uppercase;
-            margin-top: 1rem;
-            margin-bottom: 0.25rem;
-        }
-
-        .deca-paper strong {
-            font-family: 'Arial', Helvetica, sans-serif;
-            font-weight: 800;
-        }
-
+        /* List Styles */
         .deca-paper ul { list-style-type: disc; padding-left: 1.5em; margin-bottom: 1em; }
         .deca-paper ol { list-style-type: decimal; padding-left: 1.5em; margin-bottom: 1em; }
         .deca-paper p { margin-bottom: 1em; text-align: justify; }
         
+        /* Page Break Styling for Screen */
         .deca-paper hr {
             border: 0;
             border-top: 4px dashed #cbd5e1;
@@ -141,40 +92,25 @@
             font-size: 12px;
             font-weight: bold;
         }
-        
-        /* Fix for Page Break Divs (Injected via Logic) */
-        .print-break {
-            break-before: page;
-            page-break-before: always;
-            height: 1px;
-            display: block;
+
+        /* Header Info Block (Cluster/Event) */
+        .deca-header-info {
+            font-family: 'Arial', sans-serif;
+            font-weight: bold;
+            font-size: 12px;
+            text-transform: uppercase;
+            margin-bottom: 5px;
         }
 
         /* Tool Output Styles */
         .tool-output { font-family: 'Inter', sans-serif; }
         .tool-output h3 { font-weight: bold; margin-top: 1rem; margin-bottom: 0.5rem; color: #4b5563; }
         .tool-output ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 1rem; }
-        
-        .tool-output table { 
-            width: 100%; 
-            border-collapse: collapse; 
-            margin-top: 1rem; 
-            font-size: 0.85em; 
-            font-family: 'Arial', sans-serif;
-        }
-        .tool-output th, .tool-output td { 
-            border: 1px solid #000; 
-            padding: 0.5rem; 
-            text-align: center; 
-            vertical-align: middle; 
-        }
-        .tool-output th:first-child, .tool-output td:first-child {
-            text-align: left;
-            width: 40%;
-        }
-        .tool-output th { background-color: #f3f4f6; font-weight: 700; color: #000; }
-        
-        .hidden-important { display: none !important; }
+        /* Table Styles for Rubric */
+        .tool-output table { width: 100%; border-collapse: collapse; margin-top: 1rem; font-size: 0.9em; }
+        .tool-output th, .tool-output td { border: 1px solid #000; padding: 0.75rem; text-align: left; vertical-align: middle; }
+        .tool-output th { background-color: #f3f4f6; font-weight: 600; color: #000; text-align: center; }
+        .tool-output td:not(:first-child) { text-align: center; } /* Center checkmarks */
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen flex flex-col">
@@ -186,25 +122,21 @@
                 <div class="bg-yellow-400 text-blue-900 p-2 rounded font-bold text-xl">DECA</div>
                 <h1 class="text-2xl font-bold tracking-tight">AI Role Play Generator</h1>
             </div>
+            <div class="text-blue-200 text-sm hidden sm:block">
+                Prepare for competition with instant scenarios
+            </div>
         </div>
     </header>
 
     <main class="flex-grow p-4 md:p-8">
         <div class="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
             
-            <!-- Configuration Panel -->
+            <!-- Configuration Panel (Left Sidebar) -->
             <div class="lg:col-span-4 space-y-6 no-print">
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 sticky top-8">
                     <h2 class="text-lg font-bold text-slate-800 mb-4 border-b pb-2">Configuration</h2>
                     
                     <div class="space-y-4">
-                        <!-- API Key Input (Only shows if no key in code) -->
-                        <div id="apiKeyContainer" class="bg-slate-50 p-3 rounded border border-slate-200 hidden">
-                            <label class="block text-xs font-bold text-slate-500 mb-1">GOOGLE API KEY (Required)</label>
-                            <input type="password" id="apiKeyInput" placeholder="Paste AIza... key here" class="w-full p-2 text-sm border border-slate-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                            <p class="text-[10px] text-slate-400 mt-1">Key is saved to your browser automatically. <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-blue-600 hover:text-blue-800 hover:underline font-bold">Get a free key here.</a></p>
-                        </div>
-
                         <!-- Career Cluster -->
                         <div>
                             <label class="block text-sm font-medium text-slate-600 mb-1">Career Cluster</label>
@@ -254,32 +186,36 @@
                     </div>
                 </div>
 
+                <!-- Tips Box -->
                 <div class="bg-blue-50 p-6 rounded-xl border border-blue-100 text-sm text-blue-800">
                     <h3 class="font-bold mb-2"><i class="fas fa-lightbulb text-yellow-500 mr-2"></i>Pro Tip</h3>
                     <p>Use this generated scenario to practice your prep time. Focus on hitting all performance indicators explicitly during your "presentation".</p>
                 </div>
             </div>
 
-            <!-- Output Panel -->
+            <!-- Output Panel (Right Content) -->
             <div class="lg:col-span-8 space-y-6">
+                
                 <!-- Empty State -->
                 <div id="emptyState" class="h-full flex flex-col items-center justify-center text-slate-400 bg-white rounded-xl border-2 border-dashed border-slate-200 p-12 min-h-[400px]">
                     <div class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-4">
                         <i class="fas fa-file-alt text-4xl text-slate-300"></i>
                     </div>
                     <h3 class="text-xl font-semibold text-slate-600">No Scenario Generated</h3>
-                    <p class="text-center mt-2 max-w-xs">Select your options and click Generate.</p>
+                    <p class="text-center mt-2 max-w-xs">Select your options on the left and click Generate to create a custom DECA role play.</p>
                 </div>
 
                 <!-- Loading State -->
                 <div id="loadingState" class="hidden h-full flex flex-col items-center justify-center bg-white rounded-xl border border-slate-200 p-12 min-h-[400px]">
                     <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
                     <h3 class="text-lg font-semibold text-slate-700">Constructing Scenario...</h3>
+                    <p class="text-slate-500 text-sm mt-2">Analyzing performance indicators...</p>
                 </div>
 
                 <!-- Result Container -->
                 <div id="resultContainer" class="hidden space-y-6">
-                    <!-- AI Tools -->
+                    
+                    <!-- AI Tools Bar -->
                     <div class="bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-100 p-4 rounded-xl shadow-sm no-print">
                         <h3 class="text-sm font-bold text-indigo-900 uppercase tracking-wider mb-3 flex items-center gap-2">
                             <i class="fas fa-robot"></i> AI Study Buddy
@@ -303,7 +239,7 @@
                         </div>
                     </div>
 
-                    <!-- Tool Output -->
+                    <!-- Tool Output Container (Hidden by default) -->
                     <div id="toolOutputContainer" class="hidden bg-indigo-900 text-white rounded-xl shadow-lg overflow-hidden border border-indigo-800 transition-all duration-300 relative no-print">
                         <div class="p-4 bg-indigo-950 border-b border-indigo-800 flex justify-between items-center">
                             <h3 id="toolTitle" class="font-bold text-indigo-100 flex items-center gap-2">
@@ -313,7 +249,7 @@
                                 <button onclick="copyToolOutput()" title="Copy to Clipboard" class="text-indigo-300 hover:text-white hover:bg-indigo-800 rounded-full w-8 h-8 flex items-center justify-center transition">
                                     <i class="fas fa-copy"></i>
                                 </button>
-                                <button onclick="printTool()" title="Print" class="text-indigo-300 hover:text-white hover:bg-indigo-800 rounded-full w-8 h-8 flex items-center justify-center transition">
+                                <button onclick="printTool()" title="Print this analysis" class="text-indigo-300 hover:text-white hover:bg-indigo-800 rounded-full w-8 h-8 flex items-center justify-center transition">
                                     <i class="fas fa-print"></i>
                                 </button>
                                 <button onclick="closeToolOutput()" title="Close" class="text-indigo-300 hover:text-white hover:bg-indigo-800 rounded-full w-8 h-8 flex items-center justify-center transition">
@@ -332,14 +268,11 @@
 
                     <!-- Toolbar -->
                     <div class="flex justify-end gap-2 no-print">
-                        <button id="downloadPdfBtn" onclick="downloadPdf()" class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 px-3 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
-                             <i class="fas fa-file-pdf"></i> Save as PDF
-                        </button>
                         <button id="mainCopyBtn" onclick="copyToClipboard('scenarioContent', 'mainCopyBtn')" class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 px-3 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
                             <i class="fas fa-copy"></i> Copy
                         </button>
                         <button onclick="window.print()" class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 px-3 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
-                            <i class="fas fa-print"></i> Print
+                            <i class="fas fa-print"></i> Print Role Play
                         </button>
                     </div>
 
@@ -364,7 +297,7 @@
 
     <script>
         // --- API KEY CONFIGURATION ---
-        const apiKey = ""; 
+        const apiKey = "AIzaSyAwyzXApAPhT8YHcA7iAKa_-Kj-PNTMjEU"; 
 
         // --- SAFE INITIALIZATION & DATA ---
         
@@ -374,7 +307,7 @@
             "Entrepreneurship": ["Entrepreneurship Series", "Entrepreneurship Team Decision Making"],
             "Finance": ["Accounting Applications Series", "Business Finance Series", "Financial Services Team Decision Making"],
             "Hospitality & Tourism": ["Hotel and Lodging Management Series", "Quick Serve Restaurant Management Series", "Restaurant and Food Service Management Series", "Travel and Tourism Team Decision Making", "Hospitality Services Team Decision Making"],
-            "Marketing": ["Apparel and Accessories Marketing Series", "Automotive Services Marketing Series", "Business Services Marketing Series", "Buying and Merchandising Team Decision Making", "Food Marketing Series", "Marketing Communications Series", "Marketing Management Team Decision Making", "Retail Merchandising Series", "Sports and Entertainment Marketing Series", "Sports and Entertainment Marketing Team Decision Making"],
+            "Marketing": ["Apparel and Accessories Marketing Series", "Automotive Services Marketing Series", "Business Services Marketing Series", "Food Marketing Series", "Marketing Communications Series", "Marketing Management Team Decision Making", "Retail Merchandising Series", "Sports and Entertainment Marketing Series", "Sports and Entertainment Marketing Team Decision Making"],
             "Personal Financial Literacy": ["Personal Financial Literacy Event"]
         };
 
@@ -470,35 +403,12 @@
         
         // --- SAFE DOM LOADING ---
         document.addEventListener('DOMContentLoaded', () => {
-            const apiKeyInput = document.getElementById('apiKeyInput');
-            const apiKeyContainer = document.getElementById('apiKeyContainer');
             const clusterSelect = document.getElementById('clusterSelect');
             const eventSelect = document.getElementById('eventSelect');
             const areaSelect = document.getElementById('areaSelect');
             const generateBtn = document.getElementById('generateBtn');
 
-            // 1. API Key UI Logic
-            if (!apiKey) {
-                // No hardcoded key? Show the input box
-                apiKeyContainer.classList.remove('hidden');
-                // Try load from local storage
-                try {
-                    const storedKey = localStorage.getItem('deca_api_key');
-                    if (storedKey && apiKeyInput) {
-                        apiKeyInput.value = storedKey;
-                    }
-                } catch (e) {
-                    console.warn("Local storage access blocked.", e);
-                }
-                // Save listener
-                if (apiKeyInput) {
-                    apiKeyInput.addEventListener('input', (e) => {
-                        try { localStorage.setItem('deca_api_key', e.target.value.trim()); } catch (e) {}
-                    });
-                }
-            }
-
-            // 2. Populate Clusters
+            // 1. Populate Clusters
             if (clusterSelect) {
                 for (const cluster in clusters) {
                     const option = document.createElement('option');
@@ -508,7 +418,7 @@
                 }
             }
 
-            // 3. Event Listeners
+            // 2. Event Listeners
             if (clusterSelect) {
                 clusterSelect.addEventListener('change', (e) => {
                     const selectedCluster = e.target.value;
@@ -564,11 +474,8 @@
             const loadingState = document.getElementById('loadingState');
             const scenarioContent = document.getElementById('scenarioContent');
 
-            // Determine key to use (Hardcoded OR Input)
-            const userKey = apiKey || document.getElementById('apiKeyInput').value.trim();
-
-            if (!userKey) {
-                showError("Please enter your Google API Key in the box above.");
+            if (!apiKey) {
+                showError("Configuration Error: The site owner has not configured the API Key.");
                 return;
             }
 
@@ -597,7 +504,7 @@
 
             try {
                 const prompt = createPrompt(cluster, eventName, instructionalArea, pathway);
-                const responseText = await callGeminiAPI(prompt, userKey);
+                const responseText = await callGeminiAPI(prompt);
                 
                 currentScenarioText = responseText;
                 const htmlContent = marked.parse(responseText);
@@ -778,24 +685,6 @@
             w.document.close();
             w.print();
         }
-        
-        function downloadPdf() {
-            const element = document.getElementById('scenarioContent');
-            // Cloning the element to not affect the view
-            const clone = element.cloneNode(true);
-            
-            // Basic PDF options
-            const opt = {
-              margin:       [0.5, 0.5], // 0.5 inch margins
-              filename:     'DECA_Role_Play.pdf',
-              image:        { type: 'jpeg', quality: 0.98 },
-              html2canvas:  { scale: 2 }, // Higher scale for better quality
-              jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
-            };
-            
-            // Generate PDF
-            html2pdf().set(opt).from(clone).save();
-        }
 
         function createPrompt(cluster, eventName, area, pathway) {
             const isTeamEvent = eventName.includes("Team Decision Making");
@@ -820,7 +709,6 @@
                 pathwaySection = `**CAREER PATHWAY**\n${pathway}\n\n`;
             }
 
-            // Using HTML comments to force breaks if pure CSS classes fail in some renderers, but sticking to div class injection is best
             return `You are an expert writer for DECA competitive events. Your goal is to generate a role play that looks IDENTICAL to an official DECA 2025 event sheet.\n\n` +
             `**INPUTS:**\nCluster: ${cluster}\nEvent: ${eventName}\nPathway: ${pathway}\nInstructional Area: ${area}\n\n` +
             `**STRICT OUTPUT FORMAT:**\n` +
@@ -857,8 +745,8 @@
             `1. [Question]\n2. [Question]\n3. [Question]`;
         }
 
-        async function callGeminiAPI(prompt, key) {
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${key}`;
+        async function callGeminiAPI(prompt) {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
             const payload = { contents: [{ parts: [{ text: prompt }] }] };
             
             let delay = 1000;
@@ -880,10 +768,9 @@
         }
         
         async function runToolQuery(prompt) {
-            const userKey = apiKey || document.getElementById('apiKeyInput').value.trim();
-            if(!userKey) { alert("Please enter API Key."); return; }
+            if(!apiKey) { alert("Config Error: API Key not set in source code."); return; }
             try {
-                const r = await callGeminiAPI(prompt, userKey);
+                const r = await callGeminiAPI(prompt);
                 document.getElementById('toolContent').innerHTML = marked.parse(r);
                 document.getElementById('toolLoader').classList.add('hidden');
             } catch(e) {
