@@ -854,7 +854,10 @@
                 } catch (e) {
                     // Only throw if we've tried all keys
                     if (i === apiKeys.length - 1) throw e;
-                    console.error(e); // Log error but continue loop
+                    console.error(e); 
+                    
+                    // Rotate for next loop anyway just in case
+                    currentKeyIndex = (currentKeyIndex + 1) % apiKeys.length;
                 }
             }
         }
