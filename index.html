@@ -345,13 +345,16 @@
     </main>
 
     <footer class="bg-white border-t border-slate-200 mt-auto py-6 no-print">
-        <div class="max-w-5xl mx-auto px-4 text-center text-slate-500 text-sm">
-            <p>Generated scenarios are for educational practice purposes.</p>
+        <div class="max-w-5xl mx-auto px-4 text-center text-slate-500 text-sm flex justify-between items-center">
+            <span>Generated scenarios are for educational practice purposes.</span>
+            <span class="text-slate-400 text-xs">v5.0</span>
         </div>
     </footer>
 
     <script>
-        // --- API KEY ROTATION CONFIGURATION ---
+        console.log("DECA Generator v5 Loaded");
+
+        // --- API KEY ROTATION CONFIGURATION (GLOBAL) ---
         const apiKeys = [
             "AIzaSyAwyzXApAPhT8YHcA7iAKa_-Kj-PNTMjEU",
             "AIzaSyCBl4v1EeAfAMZCkFJgSmwJCkgp_qrJk-Q",
@@ -837,33 +840,18 @@
         }
 
         async function callGeminiAPI(prompt) {
-            const apiKeys = [
-                "AIzaSyAwyzXApAPhT8YHcA7iAKa_-Kj-PNTMjEU",
-                "AIzaSyCBl4v1EeAfAMZCkFJgSmwJCkgp_qrJk-Q",
-                "AIzaSyB2LNbJuLxghaYWzC1XmLb9SM_xnF1Wauk",
-                "AIzaSyCQ3tFzWK9D33SRhZA_636pekc_v9ljwbQ",
-                "AIzaSyBRNjHoFQxTy6LgvdxJRLO884FndHaqszM",
-                "AIzaSyD2AsWc9C-s6k5NHdwotSlG5-5VvQVeHPk",
-                "AIzaSyAtaLRQUleWBqrmaRiBrmg7y6o9HITvb9E",
-                "AIzaSyAm1YWAi-9h9kVuo7V8WGJJO7CBwgquXng",
-                "AIzaSyBB-iTvJSIzdyJgiRpl3BP3-o-2rVNX0m0",
-                "AIzaSyCGJYrzwEaqNxB-U4MfKNSxWlUd8R8pPRY"
-            ];
-            
             // Models to try in order: newer first, then standard fallback
             const models = [
                 "gemini-2.5-flash-preview-09-2025", 
-                "gemini-1.5-flash"
+                "gemini-1.5-flash",
+                "gemini-1.5-pro"
             ];
-
-            // Initialize rotation index if undefined
-            if (typeof window.currentKeyIndex === 'undefined') window.currentKeyIndex = Math.floor(Math.random() * apiKeys.length);
 
             let lastError = null;
 
             // Try each key in sequence starting from current index
             for (let i = 0; i < apiKeys.length; i++) {
-                const key = apiKeys[window.currentKeyIndex];
+                const key = apiKeys[currentKeyIndex];
                 
                 // Try models for this key
                 for (const model of models) {
@@ -891,7 +879,7 @@
                         
                         // If 404, specifically try next model on SAME key
                         if (response.status === 404) {
-                            console.warn(`Model ${model} not found for key ${window.currentKeyIndex}. Trying fallback model...`);
+                            console.warn(`Model ${model} not found for key ${currentKeyIndex}. Trying fallback model...`);
                             continue; // Continue to next model loop
                         }
 
@@ -911,7 +899,7 @@
                         return data.candidates[0].content.parts[0].text;
 
                     } catch (e) {
-                        console.warn(`Key ${window.currentKeyIndex} (${model}) failed: ${e.message}`);
+                        console.warn(`Key ${currentKeyIndex} (${model}) failed: ${e.message}`);
                         lastError = e;
                         // If it's not a 404, break model loop to rotate KEY
                         if (!e.message.includes("404")) {
@@ -921,7 +909,7 @@
                 }
                 
                 // Rotate key for next attempt
-                window.currentKeyIndex = (window.currentKeyIndex + 1) % apiKeys.length;
+                currentKeyIndex = (currentKeyIndex + 1) % apiKeys.length;
             }
             
             // If we get here, all keys failed
