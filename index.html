@@ -841,12 +841,22 @@
             for (let i = 0; i < apiKeys.length; i++) {
                 try {
                     const key = apiKeys[currentKeyIndex];
-                    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${key}`;
+                    // Using stable version gemini-1.5-flash which has better availability
+                    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`;
                     
                     const response = await fetch(url, { 
                         method: 'POST', 
                         headers: {'Content-Type': 'application/json'}, 
-                        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }) 
+                        body: JSON.stringify({ 
+                            contents: [{ parts: [{ text: prompt }] }],
+                            // CRITICAL FIX: Disable safety settings to prevent empty "Safety" returns for conflict scenarios
+                            safetySettings: [
+                                { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
+                                { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
+                                { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
+                                { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }
+                            ]
+                        }) 
                     });
 
                     // If rate limited or quota exceeded, try next key
@@ -870,7 +880,20 @@
                     }
                     
                     const data = await response.json();
-                    if (!data.candidates) throw new Error("No content generated.");
+                    
+                    // Safety check: sometimes blocked content returns empty candidates
+                    if (!data.candidates || data.candidates.length === 0) {
+                        console.warn("Key returned no candidates (likely safety block). Rotating...");
+                        currentKeyIndex = (currentKeyIndex + 1) % apiKeys.length;
+                        continue;
+                    }
+                    
+                    if (!data.candidates[0].content || !data.candidates[0].content.parts) {
+                         console.warn("Key returned malformed content. Rotating...");
+                         currentKeyIndex = (currentKeyIndex + 1) % apiKeys.length;
+                         continue;
+                    }
+
                     return data.candidates[0].content.parts[0].text;
 
                 } catch (e) {
