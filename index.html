@@ -347,12 +347,12 @@
     <footer class="bg-white border-t border-slate-200 mt-auto py-6 no-print">
         <div class="max-w-5xl mx-auto px-4 text-center text-slate-500 text-sm flex justify-between items-center">
             <span>Generated scenarios are for educational practice purposes.</span>
-            <span class="text-slate-400 text-xs">v5.0</span>
+            <span class="text-slate-400 text-xs">v5.1 (Fixed)</span>
         </div>
     </footer>
 
     <script>
-        console.log("DECA Generator v5 Loaded");
+        console.log("DECA Generator v5.1 Loaded");
 
         // --- API KEY ROTATION CONFIGURATION (GLOBAL) ---
         const apiKeys = [
@@ -368,6 +368,7 @@
             "AIzaSyCGJYrzwEaqNxB-U4MfKNSxWlUd8R8pPRY"
         ];
         
+        // Define key index at the top level of the script
         let currentKeyIndex = Math.floor(Math.random() * apiKeys.length);
 
         // --- SAFE INITIALIZATION & DATA ---
@@ -851,6 +852,7 @@
 
             // Try each key in sequence starting from current index
             for (let i = 0; i < apiKeys.length; i++) {
+                // FIXED: Use local 'currentKeyIndex' not 'window.currentKeyIndex'
                 const key = apiKeys[currentKeyIndex];
                 
                 // Try models for this key
