@@ -3,354 +3,350 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DECA Role Play Generator</title>
+    <meta name="referrer" content="no-referrer-when-downgrade">
+    <title>DECA Master - AI Exam Prep</title>
+    
+    <!-- Libraries -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+
+    <!-- Firebase Imports -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, getDocs, query, orderBy, Timestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCxdHiRi9kq5W-nJnLdfvC1oZ30VPnqJKA",
+            authDomain: "aidecaexams.firebaseapp.com",
+            projectId: "aidecaexams",
+            storageBucket: "aidecaexams.firebasestorage.app",
+            messagingSenderId: "895592591782",
+            appId: "1:895592591782:web:5be5205a1743d898589f67",
+            measurementId: "G-7J65GMHNBD"
+        };
+
+        let db, auth, userId;
+
+        try {
+            const app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
+            signInAnonymously(auth).catch(console.error);
+            onAuthStateChanged(auth, u => userId = u ? u.uid : null);
+        } catch (e) { console.warn("Firebase Init Error:", e); }
+
+        window.saveExam = async (data) => {
+            if (!db) return;
+            try {
+                await addDoc(collection(db, 'exam_submissions'), {
+                    ...data,
+                    timestamp: Timestamp.now(),
+                    userId: userId
+                });
+            } catch (e) { console.error("Save Error:", e); }
+        };
+
+        window.loadSubmissions = async () => {
+            if (!db) return [];
+            try {
+                const q = query(collection(db, 'exam_submissions'), orderBy('timestamp', 'desc'));
+                const snap = await getDocs(q);
+                return snap.docs.map(d => ({id: d.id, ...d.data()}));
+            } catch (e) { return []; }
+        };
+    </script>
+
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; }
-        .print-only { display: none; }
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Print Styles */
         @media print {
             .no-print { display: none !important; }
             .print-only { display: block !important; }
-            body { background: white; color: black; margin: 0; padding: 0; }
-            
-            /* Main container print reset */
-            .role-play-container { 
-                box-shadow: none !important; 
-                border: none !important; 
-                padding: 0 !important; 
-                width: 100% !important; 
-                margin: 0 !important; 
-            }
-            
-            /* --- FORCE PAGE BREAKS --- */
-            
-            /* 1. Event Situation starts on Page 2 */
-            h2:contains("EVENT SITUATION"),
-            h2[id^="event-situation"] { 
-                break-before: page !important; 
-                page-break-before: always !important; 
-                margin-top: 0 !important;
-                padding-top: 40px !important;
-            }
-
-            /* 2. Judge's Instructions start on Page 3 */
-            h2:contains("JUDGE'S INSTRUCTIONS"),
-            h2[id^="judges-instructions"] { 
-                break-before: page !important; 
-                page-break-before: always !important; 
-                margin-top: 0 !important;
-                padding-top: 40px !important;
-            }
-
-            /* Hide the visual HR divider in print */
-            hr { display: none !important; }
-            .deca-paper hr::after { display: none !important; }
-            
-            /* Ensure Headers look right on print */
-            h1 { font-size: 24px !important; margin-bottom: 20px !important; }
-            h2 { font-size: 14px !important; border-bottom: 2px solid black !important; margin-top: 20px !important; }
-            h3 { font-size: 12px !important; margin-top: 15px !important; }
-
-            /* Table Styling for Print */
-            table { 
-                border-collapse: collapse !important; 
-                width: 100% !important; 
-                margin-top: 15px !important;
-            }
-            th, td {
-                border: 1px solid black !important;
-                padding: 4px 8px !important;
-                font-size: 10pt !important; 
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-            }
-            th { background-color: #f3f4f6 !important; font-weight: bold; }
-            
-            @page {
-                margin: 1cm; 
-                size: letter portrait;
-            }
+            body { background: white; color: black; overflow: visible; height: auto; }
+            #main-stage { overflow: visible !important; }
+            .page-break { break-after: page; }
         }
 
-        /* --- DECA Document Authenticity Styles (Screen) --- */
-        .deca-paper { font-family: 'Times New Roman', Times, serif; line-height: 1.3; color: #000; }
+        .option-card { transition: all 0.2s; }
+        .option-card:hover { border-color: #3b82f6; background-color: #eff6ff; }
+        .option-card.selected { background-color: #eff6ff; border-color: #2563eb; ring: 2px solid #2563eb; }
         
-        .deca-paper h1 { 
-            font-family: 'Arial', Helvetica, sans-serif;
-            font-size: 24px; 
-            font-weight: 900; 
-            text-transform: uppercase;
-            text-align: center;
-            margin-bottom: 1.5rem;
-            color: #000;
-            letter-spacing: -0.5px;
-        }
-
-        .deca-paper h2 { 
-            font-family: 'Arial', Helvetica, sans-serif;
-            font-size: 14px; 
-            font-weight: 800; 
-            text-transform: uppercase;
-            margin-top: 1.5rem; 
-            margin-bottom: 0.5rem; 
-            border-bottom: 2px solid #000; 
-            padding-bottom: 2px;
-            color: #000;
-        }
-
-        .deca-paper h3 {
-            font-family: 'Arial', Helvetica, sans-serif;
-            font-size: 12px;
-            font-weight: 700;
-            text-transform: uppercase;
-            margin-top: 1rem;
-            margin-bottom: 0.25rem;
-        }
-
-        .deca-paper strong {
-            font-family: 'Arial', Helvetica, sans-serif;
-            font-weight: 800;
-        }
-
-        .deca-paper ul { list-style-type: disc; padding-left: 1.5em; margin-bottom: 1em; }
-        .deca-paper ol { list-style-type: decimal; padding-left: 1.5em; margin-bottom: 1em; }
-        .deca-paper p { margin-bottom: 1em; text-align: justify; }
-        
-        .deca-paper hr {
-            border: 0;
-            border-top: 4px dashed #cbd5e1;
-            margin: 3rem 0;
-            position: relative;
-        }
-        .deca-paper hr::after {
-            content: "PAGE BREAK (JUDGE'S VIEW)";
-            position: absolute;
-            top: -12px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: white;
-            padding: 0 10px;
-            color: #94a3b8;
-            font-family: sans-serif;
-            font-size: 12px;
-            font-weight: bold;
-        }
-
-        /* Tool Output Styles */
-        .tool-output { font-family: 'Inter', sans-serif; }
-        .tool-output h3 { font-weight: bold; margin-top: 1rem; margin-bottom: 0.5rem; color: #4b5563; }
-        .tool-output ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 1rem; }
-        
-        .tool-output table { 
-            width: 100%; 
-            border-collapse: collapse; 
-            margin-top: 1rem; 
-            font-size: 0.85em; 
-            font-family: 'Arial', sans-serif;
-        }
-        .tool-output th, .tool-output td { 
-            border: 1px solid #000; 
-            padding: 0.5rem; 
-            text-align: center; 
-            vertical-align: middle; 
-        }
-        .tool-output th:first-child, .tool-output td:first-child {
-            text-align: left;
-            width: 40%;
-        }
-        .tool-output th { background-color: #f3f4f6; font-weight: 700; color: #000; }
-        
-        .hidden-important { display: none !important; }
+        .nav-item.active { background-color: #eff6ff; border-color: #3b82f6; color: #1d4ed8; }
+        .nav-item.answered { border-left-color: #22c55e; }
+        .nav-item.flagged { border-right-color: #ef4444; border-right-width: 4px; }
     </style>
 </head>
-<body class="bg-slate-50 min-h-screen flex flex-col">
+<body>
 
     <!-- Header -->
-    <header class="bg-blue-900 text-white p-6 shadow-lg no-print">
-        <div class="max-w-5xl mx-auto flex justify-between items-center">
-            <div class="flex items-center gap-3">
-                <div class="bg-yellow-400 text-blue-900 p-2 rounded font-bold text-xl">DECA</div>
-                <h1 class="text-2xl font-bold tracking-tight">AI Role Play Generator</h1>
+    <header class="bg-blue-900 text-white shadow-lg z-20 flex-shrink-0 h-16 flex items-center justify-between px-6 no-print">
+        <div class="flex items-center gap-3">
+            <div class="bg-yellow-400 text-blue-900 px-2 py-1 rounded font-black text-lg tracking-tighter">DECA</div>
+            <h1 class="text-lg font-bold tracking-tight text-blue-100">Exam Prep</h1>
+        </div>
+        
+        <div class="flex items-center gap-6">
+            <!-- Timer -->
+            <div id="timer-box" class="hidden bg-blue-800/50 px-4 py-1.5 rounded-lg border border-blue-700/50 flex items-center gap-2">
+                <i class="far fa-clock text-blue-300"></i>
+                <span id="timer-display" class="font-mono font-bold text-lg tracking-widest text-white">90:00</span>
             </div>
+
+            <!-- Admin -->
+            <button onclick="app.toggleAdmin()" class="text-blue-300 hover:text-white transition p-2 rounded hover:bg-blue-800">
+                <i class="fas fa-lock"></i>
+            </button>
         </div>
     </header>
 
-    <main class="flex-grow p-4 md:p-8">
-        <div class="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
+    <!-- Main App -->
+    <div class="flex flex-grow overflow-hidden relative">
+        
+        <!-- SIDEBAR -->
+        <aside id="sidebar" class="w-72 bg-white border-r border-slate-200 flex-col hidden md:flex no-print transition-all duration-300">
+            <div class="p-4 border-b border-slate-100 bg-slate-50">
+                <h3 class="font-bold text-slate-700 text-xs uppercase tracking-wider mb-2">Navigator</h3>
+                <div class="flex justify-between text-[10px] text-slate-500 font-medium">
+                    <span class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-green-500"></div> Answered</span>
+                    <span class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-red-500"></div> Flagged</span>
+                </div>
+            </div>
             
-            <!-- Configuration Panel -->
-            <div class="lg:col-span-4 space-y-6 no-print">
-                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 sticky top-8">
-                    <h2 class="text-lg font-bold text-slate-800 mb-4 border-b pb-2">Configuration</h2>
-                    
-                    <div class="space-y-4">
-                        <!-- API Key Input (Hidden/Managed internally) -->
-                        <div id="apiKeyContainer" class="bg-slate-50 p-3 rounded border border-slate-200 hidden">
-                            <label class="block text-xs font-bold text-slate-500 mb-1">GOOGLE API KEY</label>
-                            <input type="password" id="apiKeyInput" value="MANAGED_INTERNALLY" disabled class="w-full p-2 text-sm border border-slate-300 rounded bg-slate-100 text-slate-500">
-                        </div>
+            <div id="nav-grid" class="flex-grow overflow-y-auto p-2 grid grid-cols-5 gap-1 content-start">
+                <!-- Nav Items Injected Here -->
+            </div>
 
-                        <!-- Career Cluster -->
+            <div class="p-4 border-t border-slate-200 bg-slate-50">
+                <button onclick="app.showReview()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg text-sm shadow-sm transition">
+                    Review & Submit
+                </button>
+                <button onclick="app.cancelExam()" class="w-full mt-2 text-red-600 hover:text-red-700 text-xs font-bold py-2 transition">
+                    Cancel Exam
+                </button>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <main id="main-stage" class="flex-grow overflow-y-auto bg-slate-50 relative w-full p-6">
+
+            <!-- 1. CONFIG VIEW -->
+            <div id="view-config" class="max-w-2xl mx-auto mt-10">
+                <div class="bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden">
+                    <div class="bg-blue-900 p-6 text-white">
+                        <h2 class="text-2xl font-bold">New Exam Session</h2>
+                        <p class="text-blue-200 text-sm">Select your cluster to generate a blueprint-aligned practice test.</p>
+                    </div>
+                    
+                    <div class="p-8 space-y-6">
+                        <!-- Cluster -->
                         <div>
-                            <label class="block text-sm font-medium text-slate-600 mb-1">Career Cluster</label>
-                            <div class="relative">
-                                <select id="clusterSelect" class="w-full p-3 border border-slate-300 rounded-lg appearance-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-slate-700">
-                                    <option value="">Select a Cluster...</option>
-                                </select>
-                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
-                                    <i class="fas fa-chevron-down text-xs"></i>
-                                </div>
-                            </div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Career Cluster</label>
+                            <select id="sel-cluster" class="w-full p-3 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-blue-500 outline-none">
+                                <option value="">Select...</option>
+                                <!-- JS Populated -->
+                            </select>
                         </div>
 
                         <!-- Event -->
                         <div>
-                            <label class="block text-sm font-medium text-slate-600 mb-1">Specific Event</label>
-                            <div class="relative">
-                                <select id="eventSelect" class="w-full p-3 border border-slate-300 rounded-lg appearance-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-slate-700" disabled>
-                                    <option value="">Select Cluster First</option>
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Event</label>
+                            <select id="sel-event" class="w-full p-3 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-blue-500 outline-none" disabled>
+                                <option>Select Cluster First...</option>
+                            </select>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <!-- Level -->
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Level</label>
+                                <select id="sel-level" class="w-full p-3 border border-slate-300 rounded-lg text-sm bg-white">
+                                    <option value="District">District</option>
+                                    <option value="Association">Association (State)</option>
+                                    <option value="ICDC">ICDC</option>
                                 </select>
-                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
-                                    <i class="fas fa-chevron-down text-xs"></i>
-                                </div>
+                            </div>
+                            <!-- Questions -->
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Questions</label>
+                                <select id="sel-count" class="w-full p-3 border border-slate-300 rounded-lg text-sm bg-white">
+                                    <option value="10">10 (Warmup)</option>
+                                    <option value="25">25 (Practice)</option>
+                                    <option value="50">50 (Half Exam)</option>
+                                    <option value="100">100 (Full Exam)</option>
+                                </select>
                             </div>
                         </div>
 
-                        <!-- Instructional Area -->
+                        <!-- Name -->
                         <div>
-                            <label class="block text-sm font-medium text-slate-600 mb-1">Instructional Area</label>
-                            <div class="relative">
-                                <select id="areaSelect" class="w-full p-3 border border-slate-300 rounded-lg appearance-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-slate-700" disabled>
-                                    <option value="Random">Select Cluster First</option>
-                                </select>
-                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
-                                    <i class="fas fa-chevron-down text-xs"></i>
-                                </div>
-                            </div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Student Name</label>
+                            <input type="text" id="inp-name" class="w-full p-3 border border-slate-300 rounded-lg text-sm" placeholder="Enter Full Name">
                         </div>
+
+                        <button onclick="app.startExam()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg shadow-md transition transform active:scale-95 flex justify-center items-center gap-2">
+                            <span>Start Exam</span>
+                            <i class="fas fa-play text-xs"></i>
+                        </button>
                         
-                        <!-- Generate Button -->
-                        <button id="generateBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition duration-200 flex items-center justify-center gap-2 shadow-md">
-                            <span>Generate Role Play</span>
-                            <i class="fas fa-magic"></i>
-                        </button>
-
-                        <div id="errorMsg" class="hidden text-red-500 text-sm mt-2 bg-red-50 p-2 rounded border border-red-200"></div>
+                        <!-- Status Messages -->
+                        <div id="status-msg" class="hidden text-center text-sm py-2 rounded bg-slate-100 text-slate-600"></div>
+                        <div id="error-msg" class="hidden text-center text-sm py-2 rounded bg-red-100 text-red-600 border border-red-200 mt-2"></div>
                     </div>
-                </div>
-
-                <div class="bg-blue-50 p-6 rounded-xl border border-blue-100 text-sm text-blue-800">
-                    <h3 class="font-bold mb-2"><i class="fas fa-lightbulb text-yellow-500 mr-2"></i>Pro Tip</h3>
-                    <p>Use this generated scenario to practice your prep time. Focus on hitting all performance indicators explicitly during your "presentation".</p>
                 </div>
             </div>
 
-            <!-- Output Panel -->
-            <div class="lg:col-span-8 space-y-6">
-                <!-- Empty State -->
-                <div id="emptyState" class="h-full flex flex-col items-center justify-center text-slate-400 bg-white rounded-xl border-2 border-dashed border-slate-200 p-12 min-h-[400px]">
-                    <div class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-4">
-                        <i class="fas fa-file-alt text-4xl text-slate-300"></i>
-                    </div>
-                    <h3 class="text-xl font-semibold text-slate-600">No Scenario Generated</h3>
-                    <p class="text-center mt-2 max-w-xs">Select your options and click Generate.</p>
-                </div>
-
-                <!-- Loading State -->
-                <div id="loadingState" class="hidden h-full flex flex-col items-center justify-center bg-white rounded-xl border border-slate-200 p-12 min-h-[400px]">
-                    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
-                    <h3 class="text-lg font-semibold text-slate-700">Constructing Scenario...</h3>
-                </div>
-
-                <!-- Result Container -->
-                <div id="resultContainer" class="hidden space-y-6">
-                    <!-- AI Tools -->
-                    <div class="bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-100 p-4 rounded-xl shadow-sm no-print">
-                        <h3 class="text-sm font-bold text-indigo-900 uppercase tracking-wider mb-3 flex items-center gap-2">
-                            <i class="fas fa-robot"></i> AI Study Buddy
-                        </h3>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-                            <button onclick="handleExplainPIs()" class="flex items-center justify-center gap-2 bg-white hover:bg-indigo-50 border border-indigo-200 text-indigo-700 py-2 px-2 rounded-lg text-xs font-semibold transition shadow-sm hover:shadow-md">
-                                <span>✨ Explain PIs</span>
-                            </button>
-                            <button onclick="handleIdentifyTiers()" class="flex items-center justify-center gap-2 bg-white hover:bg-indigo-50 border border-indigo-200 text-indigo-700 py-2 px-2 rounded-lg text-xs font-semibold transition shadow-sm hover:shadow-md">
-                                <span>✨ PI Analysis</span>
-                            </button>
-                            <button onclick="handleJudgesRubric()" class="flex items-center justify-center gap-2 bg-white hover:bg-indigo-50 border border-indigo-200 text-indigo-700 py-2 px-2 rounded-lg text-xs font-semibold transition shadow-sm hover:shadow-md">
-                                <span>✨ Scoring Rubric</span>
-                            </button>
-                            <button onclick="handleVisualAids()" class="flex items-center justify-center gap-2 bg-white hover:bg-indigo-50 border border-indigo-200 text-indigo-700 py-2 px-2 rounded-lg text-xs font-semibold transition shadow-sm hover:shadow-md">
-                                <span>✨ Visual Aids</span>
-                            </button>
-                            <button onclick="handleSampleResponse()" class="flex items-center justify-center gap-2 bg-white hover:bg-indigo-50 border border-indigo-200 text-indigo-700 py-2 px-2 rounded-lg text-xs font-semibold transition shadow-sm hover:shadow-md">
-                                <span>✨ Sample Pitch</span>
-                            </button>
+            <!-- 2. EXAM VIEW -->
+            <div id="view-exam" class="hidden h-full flex flex-col max-w-5xl mx-auto">
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 flex-grow flex flex-col overflow-hidden">
+                    
+                    <!-- Question Header -->
+                    <div class="p-6 border-b border-slate-100 flex justify-between items-start">
+                        <div>
+                            <span id="q-area" class="inline-block bg-indigo-50 text-indigo-700 text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider mb-2">Category</span>
+                            <div class="text-slate-400 text-xs font-bold uppercase tracking-widest">Question <span id="q-num">1</span> of <span id="q-total">50</span></div>
                         </div>
-                    </div>
-
-                    <!-- Tool Output -->
-                    <div id="toolOutputContainer" class="hidden bg-indigo-900 text-white rounded-xl shadow-lg overflow-hidden border border-indigo-800 transition-all duration-300 relative no-print">
-                        <div class="p-4 bg-indigo-950 border-b border-indigo-800 flex justify-between items-center">
-                            <h3 id="toolTitle" class="font-bold text-indigo-100 flex items-center gap-2">
-                                <i class="fas fa-sparkles text-yellow-400"></i> AI Analysis
-                            </h3>
-                            <div class="flex items-center gap-2">
-                                <button onclick="copyToolOutput()" title="Copy to Clipboard" class="text-indigo-300 hover:text-white hover:bg-indigo-800 rounded-full w-8 h-8 flex items-center justify-center transition">
-                                    <i class="fas fa-copy"></i>
-                                </button>
-                                <button onclick="printTool()" title="Print" class="text-indigo-300 hover:text-white hover:bg-indigo-800 rounded-full w-8 h-8 flex items-center justify-center transition">
-                                    <i class="fas fa-print"></i>
-                                </button>
-                                <button onclick="closeToolOutput()" title="Close" class="text-indigo-300 hover:text-white hover:bg-indigo-800 rounded-full w-8 h-8 flex items-center justify-center transition">
-                                    <i class="fas fa-times"></i>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="p-6 bg-slate-50 text-slate-800 max-h-[500px] overflow-y-auto relative">
-                            <div id="toolLoader" class="absolute inset-0 bg-slate-50 flex flex-col items-center justify-center z-10">
-                                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mb-3"></div>
-                                <span class="text-sm text-indigo-600 font-medium">Thinking...</span>
-                            </div>
-                            <div id="toolContent" class="tool-output markdown-body text-sm"></div>
-                        </div>
-                    </div>
-
-                    <!-- Toolbar -->
-                    <div class="flex justify-end gap-2 no-print">
-                        <button id="mainCopyBtn" onclick="copyToClipboard('scenarioContent', 'mainCopyBtn')" class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 px-3 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
-                            <i class="fas fa-copy"></i> Copy
-                        </button>
-                        <button onclick="window.print()" class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 px-3 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
-                            <i class="fas fa-print"></i> Print Role Play
+                        <button onclick="app.toggleFlag()" id="btn-flag" class="text-slate-300 hover:text-red-500 transition">
+                            <i class="fas fa-flag text-xl"></i>
                         </button>
                     </div>
 
-                    <!-- The Actual Paper -->
-                    <div class="bg-white shadow-lg rounded-none md:rounded-xl role-play-container min-h-[800px] relative">
-                        <!-- Content -->
-                        <div class="p-8 md:p-16 deca-paper" id="scenarioContent">
-                            <!-- Content injected here -->
+                    <!-- Content -->
+                    <div class="p-8 md:p-12 overflow-y-auto flex-grow">
+                        <h2 id="q-text" class="text-xl md:text-2xl font-bold text-slate-800 leading-snug mb-8">Loading...</h2>
+                        <div id="q-options" class="space-y-3 max-w-3xl">
+                            <!-- Options Injected Here -->
                         </div>
                     </div>
-                </div>
 
+                    <!-- Footer -->
+                    <div class="p-4 border-t border-slate-100 bg-slate-50 flex justify-between items-center no-print">
+                        <button onclick="app.nav(-1)" class="px-6 py-2 rounded-lg border border-slate-300 text-slate-600 font-bold text-sm hover:bg-white transition">Back</button>
+                        <button onclick="app.nav(1)" class="px-6 py-2 rounded-lg bg-blue-600 text-white font-bold text-sm hover:bg-blue-700 shadow-sm transition">Next</button>
+                    </div>
+                </div>
             </div>
-        </div>
-    </main>
 
-    <footer class="bg-white border-t border-slate-200 mt-auto py-6 no-print">
-        <div class="max-w-5xl mx-auto px-4 text-center text-slate-500 text-sm">
-            <p>Generated scenarios are for educational practice purposes.</p>
-        </div>
-    </footer>
+            <!-- 3. REVIEW VIEW -->
+            <div id="view-review" class="hidden max-w-5xl mx-auto">
+                <h2 class="text-2xl font-bold text-slate-800 mb-6">Review Answers</h2>
+                <div id="review-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+                    <!-- Cards -->
+                </div>
+                <div class="flex justify-end gap-4">
+                    <button onclick="app.resume()" class="px-6 py-2 border border-slate-300 rounded-lg font-bold text-slate-600 hover:bg-white">Return to Exam</button>
+                    <button onclick="app.submit()" class="px-6 py-2 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 shadow-md">Submit Final Answers</button>
+                </div>
+            </div>
+
+            <!-- 4. RESULTS VIEW -->
+            <div id="view-results" class="hidden max-w-4xl mx-auto">
+                <div class="bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden mb-8">
+                    <div class="bg-slate-900 text-white p-8 text-center">
+                        <p class="uppercase text-xs font-bold tracking-widest text-slate-400 mb-2">Final Score</p>
+                        <h1 id="res-score" class="text-6xl font-black mb-2">0%</h1>
+                        <p id="res-detail" class="text-slate-300">0/0 Correct</p>
+                    </div>
+                    
+                    <div class="p-4 bg-slate-50 border-b border-slate-200 flex justify-center gap-3 no-print">
+                        <button onclick="app.printResults()" class="px-4 py-2 bg-white border border-slate-300 rounded text-sm font-bold text-slate-700 hover:bg-slate-50">
+                            <i class="fas fa-print mr-2"></i> Print Report
+                        </button>
+                        <button onclick="app.downloadBlank()" class="px-4 py-2 bg-white border border-slate-300 rounded text-sm font-bold text-slate-700 hover:bg-slate-50">
+                            <i class="fas fa-file-pdf mr-2"></i> Blank Exam
+                        </button>
+                        <button onclick="location.reload()" class="px-4 py-2 bg-blue-600 text-white rounded text-sm font-bold hover:bg-blue-700">
+                            New Exam
+                        </button>
+                    </div>
+
+                    <div id="res-breakdown" class="p-8 space-y-8">
+                        <!-- Questions with Explanations -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. ADMIN VIEW -->
+            <div id="view-admin" class="hidden max-w-6xl mx-auto">
+                <!-- Login -->
+                <div id="admin-login" class="max-w-md mx-auto bg-white p-8 rounded-xl shadow mt-20">
+                    <h2 class="text-xl font-bold mb-4">Admin Login</h2>
+                    <input type="password" id="admin-pass" class="w-full p-2 border rounded mb-4" placeholder="Password">
+                    <button onclick="app.checkAdmin()" class="w-full bg-slate-800 text-white py-2 rounded font-bold">Login</button>
+                </div>
+
+                <!-- Dashboard -->
+                <div id="admin-dash" class="hidden space-y-6">
+                    <div class="flex justify-between items-center">
+                        <h2 class="text-2xl font-bold text-slate-800">Instructor Dashboard</h2>
+                        <button onclick="location.reload()" class="text-red-500 font-bold text-sm">Exit</button>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Submissions -->
+                        <div class="bg-white rounded-lg shadow border border-slate-200 col-span-2">
+                            <div class="p-4 border-b font-bold bg-slate-50">Student Submissions</div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-sm text-left">
+                                    <thead class="bg-slate-50 text-slate-500 uppercase text-xs">
+                                        <tr><th class="px-4 py-2">Name</th><th class="px-4 py-2">Event</th><th class="px-4 py-2">Score</th></tr>
+                                    </thead>
+                                    <tbody id="admin-table">
+                                        <tr><td colspan="3" class="p-4 text-center text-slate-400">Loading...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Bulk Upload -->
+                        <div class="bg-white rounded-lg shadow border border-slate-200 p-6">
+                            <h3 class="font-bold mb-2">Bulk Upload</h3>
+                            <p class="text-xs text-slate-500 mb-2">Paste text questions here.</p>
+                            <textarea class="w-full h-40 border rounded p-2 text-xs font-mono mb-2"></textarea>
+                            <button class="w-full bg-green-600 text-white py-2 rounded text-sm font-bold">Upload</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
 
     <script>
-        // --- API KEY ROTATION CONFIGURATION ---
-        const apiKeys = [
+        // --- DATA CONSTANTS ---
+        const CLUSTERS = {
+            "Business Administration Core": ["Principles of Business Management", "Principles of Entrepreneurship", "Principles of Finance", "Principles of Hospitality and Tourism", "Principles of Marketing"],
+            "Business Management & Administration": ["Business Law and Ethics Team Decision Making", "Human Resources Management Series"],
+            "Entrepreneurship": ["Entrepreneurship Series", "Entrepreneurship Team Decision Making"],
+            "Finance": ["Accounting Applications Series", "Business Finance Series", "Financial Consulting", "Financial Services Team Decision Making"],
+            "Hospitality & Tourism": ["Hospitality and Tourism Professional Selling", "Hospitality Services Team Decision Making", "Hotel and Lodging Management Series", "Quick Serve Restaurant Management Series", "Restaurant and Food Service Management Series", "Travel and Tourism Team Decision Making"],
+            "Marketing": ["Apparel and Accessories Marketing Series", "Automotive Services Marketing Series", "Business Services Marketing Series", "Buying and Merchandising Team Decision Making", "Food Marketing Series", "Integrated Marketing Campaign-Event", "Integrated Marketing Campaign-Product", "Integrated Marketing Campaign-Service", "Marketing Communications Series", "Marketing Management Team Decision Making", "Professional Selling", "Retail Merchandising Series", "Sports and Entertainment Marketing Series", "Sports and Entertainment Marketing Team Decision Making"],
+            "Personal Financial Literacy": ["Personal Financial Literacy Event"]
+        };
+
+        const CORE_AREAS = ["Business Law", "Communications", "Customer Relations", "Economics", "Emotional Intelligence", "Financial Analysis", "Human Resources Management", "Information Management", "Marketing", "Operations", "Professional Development", "Strategic Management"];
+        const AREAS_MAP = {
+            "Business Administration Core": [...CORE_AREAS, "Entrepreneurship"],
+            "Business Management & Administration": [...CORE_AREAS, "Knowledge Management", "Project Management", "Quality Management", "Risk Management"],
+            "Entrepreneurship": [...CORE_AREAS, "Channel Management", "Market Planning", "Marketing-Information Management", "Pricing", "Product/Service Management", "Promotion", "Quality Management", "Risk Management", "Selling"],
+            "Finance": [...CORE_AREAS, "Compliance", "Financial-Information Management", "Risk Management"],
+            "Hospitality & Tourism": [...CORE_AREAS, "Distribution", "Knowledge Management", "Market Planning", "Pricing", "Product/Service Management", "Promotion", "Quality Management", "Risk Management", "Selling"],
+            "Marketing": [...CORE_AREAS, "Channel Management", "Market Planning", "Marketing-Information Management", "Pricing", "Product/Service Management", "Promotion", "Selling"],
+            "Personal Financial Literacy": ["Earning Income", "Spending", "Saving", "Investing", "Managing Credit", "Managing Risk"]
+        };
+
+        const API_KEYS = [
             "AIzaSyAwyzXApAPhT8YHcA7iAKa_-Kj-PNTMjEU",
             "AIzaSyCBl4v1EeAfAMZCkFJgSmwJCkgp_qrJk-Q",
             "AIzaSyB2LNbJuLxghaYWzC1XmLb9SM_xnF1Wauk",
@@ -363,516 +359,375 @@
             "AIzaSyCGJYrzwEaqNxB-U4MfKNSxWlUd8R8pPRY"
         ];
         
-        let currentKeyIndex = Math.floor(Math.random() * apiKeys.length);
+        let currentKeyIndex = Math.floor(Math.random() * API_KEYS.length);
 
-        // --- SAFE INITIALIZATION & DATA ---
-        
-        const clusters = {
-            "Business Administration Core": ["Principles of Business Management", "Principles of Entrepreneurship", "Principles of Finance", "Principles of Hospitality and Tourism", "Principles of Marketing"],
-            "Business Management & Administration": ["Business Law and Ethics Team Decision Making", "Human Resources Management Series"],
-            "Entrepreneurship": ["Entrepreneurship Series", "Entrepreneurship Team Decision Making"],
-            "Finance": ["Accounting Applications Series", "Business Finance Series", "Financial Services Team Decision Making"],
-            "Hospitality & Tourism": ["Hotel and Lodging Management Series", "Quick Serve Restaurant Management Series", "Restaurant and Food Service Management Series", "Travel and Tourism Team Decision Making", "Hospitality Services Team Decision Making"],
-            "Marketing": ["Apparel and Accessories Marketing Series", "Automotive Services Marketing Series", "Business Services Marketing Series", "Buying and Merchandising Team Decision Making", "Food Marketing Series", "Marketing Communications Series", "Marketing Management Team Decision Making", "Retail Merchandising Series", "Sports and Entertainment Marketing Series", "Sports and Entertainment Marketing Team Decision Making"],
-            "Personal Financial Literacy": ["Personal Financial Literacy Event"]
-        };
+        // --- APP CONTROLLER ---
+        const app = {
+            state: {
+                questions: [],
+                answers: {},
+                flagged: new Set(),
+                idx: 0,
+                timer: 5400,
+                timerInt: null,
+                meta: {}
+            },
 
-        // --- PATHWAY MAPPING DATABASE ---
-        const eventPathways = {
-            // -- NO CAREER PATHWAY --
-            "Principles of Business Management": null,
-            "Principles of Entrepreneurship": null,
-            "Principles of Finance": null,
-            "Principles of Hospitality and Tourism": null,
-            "Principles of Marketing": null,
-            "Entrepreneurship Series": null,
-            "Entrepreneurship Team Decision Making": null,
-            "Personal Financial Literacy Event": null,
-            "Business Law and Ethics Team Decision Making": null,
-            "Financial Services Team Decision Making": null,
-            "Hospitality Services Team Decision Making": null,
-            "Travel and Tourism Team Decision Making": null,
-            "Buying and Merchandising Team Decision Making": null,
-            "Marketing Management Team Decision Making": null,
-            "Sports and Entertainment Marketing Team Decision Making": null,
-
-            // -- BUSINESS MANAGEMENT & ADMIN --
-            "Human Resources Management Series": "Human Resources Management",
-
-            // -- FINANCE --
-            "Accounting Applications Series": "Accounting",
-            "Business Finance Series": "Corporate Finance",
-
-            // -- HOSPITALITY & TOURISM --
-            "Hotel and Lodging Management Series": "Lodging",
-            "Quick Serve Restaurant Management Series": "Restaurant Management",
-            "Restaurant and Food Service Management Series": "Restaurant Management",
-
-            // -- MARKETING --
-            "Apparel and Accessories Marketing Series": "Merchandising",
-            "Retail Merchandising Series": "Merchandising",
-            "Automotive Services Marketing Series": "Marketing Management",
-            "Business Services Marketing Series": "Marketing Management",
-            "Food Marketing Series": "Marketing Management",
-            "Sports and Entertainment Marketing Series": "Marketing Management",
-            "Marketing Communications Series": "Marketing Communications"
-        };
-
-        // --- EXAM BLUEPRINT ALIGNED INSTRUCTIONAL AREAS ---
-        const core11 = [
-            "Business Law", "Communications", "Customer Relations", "Economics", 
-            "Emotional Intelligence", "Entrepreneurship", "Financial Analysis", 
-            "Human Resources Management", "Information Management", "Marketing", 
-            "Operations", "Professional Development", "Strategic Management"
-        ];
-
-        const clusterAreaMapping = {
-            "Business Administration Core": core11,
-            
-            "Business Management & Administration": [
-                ...core11, 
-                "Knowledge Management", "Project Management", "Quality Management", "Risk Management"
-            ],
-            
-            "Entrepreneurship": [
-                ...core11,
-                "Channel Management", "Market Planning", "Marketing-Information Management", 
-                "Pricing", "Product/Service Management", "Promotion", "Quality Management", 
-                "Risk Management", "Selling"
-            ],
-            
-            "Finance": [
-                ...core11,
-                "Compliance", "Financial-Information Management", "Risk Management"
-            ],
-            
-            "Hospitality & Tourism": [
-                ...core11,
-                "Distribution", "Knowledge Management", "Market Planning", "Pricing", 
-                "Product/Service Management", "Promotion", "Quality Management", 
-                "Risk Management", "Selling"
-            ],
-            
-            "Marketing": [
-                ...core11,
-                "Channel Management", "Market Planning", "Marketing-Information Management", 
-                "Pricing", "Product/Service Management", "Promotion", "Selling"
-            ],
-            
-            "Personal Financial Literacy": [
-                "Earning Income", "Spending", "Saving", "Investing", 
-                "Managing Credit", "Managing Risk" 
-            ]
-        };
-
-        let currentScenarioText = "";
-        
-        // --- SAFE DOM LOADING ---
-        document.addEventListener('DOMContentLoaded', () => {
-            const apiKeyInput = document.getElementById('apiKeyInput');
-            const apiKeyContainer = document.getElementById('apiKeyContainer');
-            const clusterSelect = document.getElementById('clusterSelect');
-            const eventSelect = document.getElementById('eventSelect');
-            const areaSelect = document.getElementById('areaSelect');
-            const generateBtn = document.getElementById('generateBtn');
-
-            // 1. API Key UI Logic
-            // (Using rotation logic now, so this is mostly legacy unless you want manual override)
-            if (apiKeyInput) {
-                 apiKeyInput.value = "MANAGED_INTERNALLY";
-                 apiKeyInput.disabled = true;
-                 if(apiKeyContainer) apiKeyContainer.classList.add('hidden');
-            }
-
-            // 2. Populate Clusters
-            if (clusterSelect) {
-                for (const cluster in clusters) {
-                    const option = document.createElement('option');
-                    option.value = cluster;
-                    option.textContent = cluster;
-                    clusterSelect.appendChild(option);
+            init: function() {
+                const cSel = document.getElementById('sel-cluster');
+                for(let c in CLUSTERS) {
+                    let opt = document.createElement('option');
+                    opt.value = c; opt.textContent = c;
+                    cSel.appendChild(opt);
                 }
-            }
-
-            // 3. Event Listeners
-            if (clusterSelect) {
-                clusterSelect.addEventListener('change', (e) => {
-                    const selectedCluster = e.target.value;
-                    
-                    // Populate Events
-                    eventSelect.innerHTML = '<option value="">Select an Event...</option>';
-                    if (selectedCluster && clusters[selectedCluster]) {
-                        eventSelect.disabled = false;
-                        clusters[selectedCluster].forEach(evt => {
-                            const option = document.createElement('option');
-                            option.value = evt;
-                            option.textContent = evt;
-                            eventSelect.appendChild(option);
-                        });
-                    } else {
-                        eventSelect.disabled = true;
-                        eventSelect.innerHTML = '<option value="">Select Cluster First</option>';
-                    }
-
-                    // Populate Areas
-                    areaSelect.innerHTML = '<option value="Random">🎲 Random</option>';
-                    if (selectedCluster && clusterAreaMapping[selectedCluster]) {
-                        areaSelect.disabled = false;
-                        const areas = clusterAreaMapping[selectedCluster];
-                        areas.sort();
-                        areas.forEach(area => {
-                            const option = document.createElement('option');
-                            option.value = area;
-                            option.textContent = area;
-                            areaSelect.appendChild(option);
-                        });
-                    } else {
-                        areaSelect.disabled = true;
-                        areaSelect.innerHTML = '<option value="">Select Cluster First</option>';
-                    }
+                
+                cSel.addEventListener('change', (e) => {
+                    const eSel = document.getElementById('sel-event');
+                    eSel.innerHTML = "";
+                    eSel.disabled = false;
+                    CLUSTERS[e.target.value].forEach(ev => {
+                        let o = document.createElement('option');
+                        o.value = ev; o.textContent = ev;
+                        eSel.appendChild(o);
+                    });
                 });
-            }
+            },
 
-            if (generateBtn) {
-                generateBtn.addEventListener('click', handleGenerate);
-            }
-        });
-
-        // --- CORE LOGIC ---
-        
-        async function handleGenerate() {
-            const cluster = document.getElementById('clusterSelect').value;
-            const eventName = document.getElementById('eventSelect').value;
-            let instructionalArea = document.getElementById('areaSelect').value;
-            const errorMsg = document.getElementById('errorMsg');
-            const emptyState = document.getElementById('emptyState');
-            const resultContainer = document.getElementById('resultContainer');
-            const loadingState = document.getElementById('loadingState');
-            const scenarioContent = document.getElementById('scenarioContent');
-
-            if (!cluster || !eventName) {
-                showError("Please select both a Career Cluster and a Specific Event.");
-                return;
-            }
-
-            // Look up specific pathway (can be null)
-            const pathway = eventPathways[eventName]; 
-
-            // Handle RANDOM Selection logic
-            if (instructionalArea === 'Random') {
-                const availableAreas = clusterAreaMapping[cluster];
-                if (availableAreas && availableAreas.length > 0) {
-                    const randomIndex = Math.floor(Math.random() * availableAreas.length);
-                    instructionalArea = availableAreas[randomIndex];
-                }
-            }
-
-            errorMsg.classList.add('hidden');
-            emptyState.classList.add('hidden');
-            resultContainer.classList.add('hidden');
-            loadingState.classList.remove('hidden');
-            closeToolOutput(); 
-
-            try {
-                const prompt = createPrompt(cluster, eventName, instructionalArea, pathway);
-                const responseText = await callGeminiAPI(prompt);
+            // --- NAVIGATION ---
+            showView: function(view) {
+                ['config', 'exam', 'review', 'results', 'admin'].forEach(v => document.getElementById('view-'+v).classList.add('hidden'));
+                document.getElementById('view-'+view).classList.remove('hidden');
                 
-                currentScenarioText = responseText;
+                const sb = document.getElementById('sidebar');
+                if(view === 'exam' || view === 'review') sb.classList.remove('hidden', 'md:flex'); 
+                else sb.classList.add('hidden');
                 
-                if (!responseText || typeof marked === 'undefined') {
-                    throw new Error("Failed to process content. Please check API quota.");
-                }
+                if(view === 'exam') sb.classList.add('md:flex');
+            },
+
+            // --- EXAM GENERATION ---
+            startExam: async function() {
+                const cluster = document.getElementById('sel-cluster').value;
+                const event = document.getElementById('sel-event').value;
+                const level = document.getElementById('sel-level').value;
+                const count = parseInt(document.getElementById('sel-count').value);
+                const name = document.getElementById('inp-name').value || "Student";
+
+                if(!cluster || !event) return alert("Select Cluster and Event");
+
+                this.state.meta = { cluster, event, level, count, name };
                 
-                const htmlContent = marked.parse(responseText);
-                
-                scenarioContent.innerHTML = htmlContent;
-                loadingState.classList.add('hidden');
-                resultContainer.classList.remove('hidden');
-                
-                if(window.innerWidth < 1024) {
-                    resultContainer.scrollIntoView({ behavior: 'smooth' });
-                }
+                const status = document.getElementById('status-msg');
+                const errBox = document.getElementById('error-msg');
+                status.textContent = "AI is generating unique questions... (Approx 10s)";
+                status.classList.remove('hidden');
+                errBox.classList.add('hidden');
 
-            } catch (err) {
-                loadingState.classList.add('hidden');
-                emptyState.classList.remove('hidden');
-                showError("Failed to generate: " + err.message);
-            }
-        }
-
-        // --- AI TOOLS ---
-        async function handleExplainPIs() {
-            if (!currentScenarioText) return;
-            showTool("Performance Indicator Analysis");
-            const prompt = `Based on the following DECA Role Play scenario, identify the Performance Indicators (PIs) listed. For each PI, provide a brief "Plain English" explanation of what it means, and one specific example of how the student can demonstrate it in this specific scenario.\n\nSCENARIO:\n${currentScenarioText}\n\nFormat as a Markdown list. Keep it concise.`;
-            await runToolQuery(prompt);
-        }
-
-        async function handleIdentifyTiers() {
-            if (!currentScenarioText) return;
-            showTool("PI Tier Breakdown");
-            const prompt = `Analyze the Performance Indicators (PIs) listed in the following DECA Role Play scenario. For each PI found in the text, identify:\n1. The PI Text.\n2. The **Instructional Area** it belongs to (e.g., Economics, Marketing, etc.).\n3. The **Tier** it likely falls under in the DECA curriculum framework: Tier 1 (Core), Tier 2 (Cluster), or Tier 3 (Pathway).\n\nSCENARIO:\n${currentScenarioText}\n\nFormat the output as a clean Markdown Table with columns: PI Description, Instructional Area, and Tier.`;
-            await runToolQuery(prompt);
-        }
-
-        async function handleJudgesRubric() {
-            if (!currentScenarioText) return;
-            showTool("Judge's Evaluation Form");
-            
-            // Determine event type from the UI state
-            const eventName = document.getElementById('eventSelect').value;
-            const isTeamEvent = eventName.includes("Team Decision Making");
-            
-            // Define Exact Number Lists (Low to High as per PDF)
-            let p1 = "0-1-2-3-4"; let p2 = "5-6-7-8"; let p3 = "9-10-11"; let p4 = "12-13-14";
-            if (isTeamEvent) { p1 = "0-1-2-3"; p2 = "4-5-6"; p3 = "7-8"; p4 = "9-10"; }
-            const s1 = "0-1"; const s2 = "2-3"; const s3 = "4"; const s4 = "5-6";
-
-            const prompt = `
-                Create an official DECA Judge's Evaluation Form based on the scenario text below.
-                It must strictly follow the format of the official DECA score sheet (Low score left, High score right).
-                
-                **HEADER INFO:**
-                **JUDGE'S EVALUATION FORM**
-                **INSTRUCTIONAL AREA:** (Extract from scenario)
-                **Participant:** _________________   **ID Number:** _________________
-
-                **TABLE STRUCTURE:**
-                Create a single Markdown table.
-                
-                **Columns:**
-                | Did the participant: | Little/No Value | Below Expectations | Meets Expectations | Exceeds Expectations | Judged Score |
-                | --- | :---: | :---: | :---: | :---: | :---: |
-
-                **Rows to Generate:**
-                1. **Performance Indicators:**
-                   - Extract each PI from the text and phrase it as a question.
-                   - **CRITICAL:** Fill the score columns with these EXACT strings:
-                     - Little/No Value: ${p1}
-                     - Below Expectations: ${p2}
-                     - Meets Expectations: ${p3}
-                     - Exceeds Expectations: ${p4}
-                   - Leave "Judged Score" blank.
-                
-                2. **21st Century Skills (Add a bold Divider Row):**
-                   - **21st CENTURY SKILLS** | | | | | |
-                   - Reason effectively and use systems thinking? | ${s1} | ${s2} | ${s3} | ${s4} | |
-                   - Make judgments and decisions, and solve problems? | ${s1} | ${s2} | ${s3} | ${s4} | |
-                   - Communicate clearly? | ${s1} | ${s2} | ${s3} | ${s4} | |
-                   - Show evidence of creativity? | ${s1} | ${s2} | ${s3} | ${s4} | |
-                   - Overall impression and responses to the judge's questions? | ${s1} | ${s2} | ${s3} | ${s4} | |
-
-                **FOOTER:**
-                **TOTAL SCORE (100)**: ___________
-
-                **SCENARIO:**
-                ${currentScenarioText}
-            `;
-            
-            await runToolQuery(prompt);
-        }
-
-        async function handleVisualAids() {
-            if (!currentScenarioText) return;
-            showTool("Visual Aid Suggestions");
-            
-            const prompt = `
-                DECA students are encouraged to draw visual aids (charts, graphs, agendas) during their prep time to show the judge.
-                Based on the scenario below, suggest 3 distinct and impressive visual aids the student should draw on paper.
-                Describe what each should look like and why it helps their argument.
-
-                SCENARIO:
-                ${currentScenarioText}
-
-                Format as a Markdown list.
-            `;
-            
-            await runToolQuery(prompt);
-        }
-
-        async function handleSampleResponse() {
-            if (!currentScenarioText) return;
-            showTool("Sample Pitch Outline");
-            
-            const prompt = `
-                Act as a DECA International Winner. Based on the scenario below, write a high-level outline of a winning presentation/pitch.
-                Include:
-                1. A creative introduction/hook.
-                2. Main body points that address the Performance Indicators.
-                3. A strong closing statement.
-                
-                Keep it structured as an outline, not a full script.
-
-                SCENARIO:
-                ${currentScenarioText}
-            `;
-            
-            await runToolQuery(prompt);
-        }
-
-        // --- UTILS ---
-        function showTool(title) {
-            const c = document.getElementById('toolOutputContainer');
-            document.getElementById('toolTitle').innerHTML = `<i class="fas fa-sparkles text-yellow-400"></i> ${title}`;
-            document.getElementById('toolLoader').classList.remove('hidden');
-            document.getElementById('toolContent').innerHTML = '';
-            c.classList.remove('hidden');
-            c.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-        function closeToolOutput() { document.getElementById('toolOutputContainer').classList.add('hidden'); }
-        function showError(msg) { const e = document.getElementById('errorMsg'); e.textContent = msg; e.classList.remove('hidden'); }
-        
-        function copyToClipboard(elementId, btnId) {
-            const content = document.getElementById(elementId);
-            const selection = window.getSelection();
-            const range = document.createRange();
-            
-            range.selectNodeContents(content);
-            selection.removeAllRanges();
-            selection.addRange(range);
-            
-            try {
-                document.execCommand('copy');
-                
-                if(btnId) {
-                    const btn = document.getElementById(btnId);
-                    const originalHTML = btn.innerHTML;
-                    btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
-                    setTimeout(() => btn.innerHTML = originalHTML, 2000);
-                } else {
-                    // If no button ID, standard alert or just silent success
-                    // Optional: Generic Toast here
-                }
-            } catch (err) {
-                console.error('Copy failed', err);
-                alert("Failed to copy. Please select the text and copy manually.");
-            }
-            
-            selection.removeAllRanges();
-        }
-
-        function copyToolOutput() { copyToClipboard('toolContent', null); }
-
-        function printTool() {
-            const content = document.getElementById('toolContent').innerHTML;
-            const title = document.getElementById('toolTitle').innerText;
-            const w = window.open('', '', 'height=600,width=800');
-            w.document.write(`<html><head><title>${title}</title><style>body{font-family:sans-serif;padding:40px;}table{width:100%;border-collapse:collapse;margin-top:20px;font-size:12px;-webkit-print-color-adjust:exact;print-color-adjust:exact;}th,td{border:1px solid black!important;padding:8px;text-align:left;}th{background:#f3f4f6;font-weight:bold;text-align:center;}td:not(:first-child){text-align:center;}ul { margin-left: 20px; }</style></head><body><h1>${title}</h1>${content}</body></html>`);
-            w.document.close();
-            w.print();
-        }
-
-        function createPrompt(cluster, eventName, area, pathway) {
-            const isTeamEvent = eventName.includes("Team Decision Making");
-            const piCount = isTeamEvent ? 7 : 5;
-            const piCountText = isTeamEvent ? "exactly 7" : "exactly 5";
-            const areaLimitText = isTeamEvent ? "At least 4" : "At least 3";
-            const prepTime = isTeamEvent ? "30 minutes" : "10 minutes";
-            const presentTime = isTeamEvent ? "15 minutes" : "10 minutes";
-
-            let piList = ""; 
-            for(let i=1; i<=piCount; i++) {
-                piList += `1. [Performance Indicator ${i}]\n`;
-            }
-
-            const participantInstructions = `The event will be presented to you through your reading of the 21st Century Skills, Performance Indicators and Event Situation. You will have up to ${prepTime} to review this information and prepare your presentation. You may make notes to use during your presentation.\n\nYou will have up to ${presentTime} to make your presentation to the judge (you may have more than one judge).\n\nYou will be evaluated on how well you demonstrate the 21st Century Skills and meet the performance indicators of this event.\n\nTurn in all of your notes and event materials when you have completed the event.`;
-
-            const skills21 = `* **Critical Thinking** – Reason effectively and use systems thinking.\n* **Problem Solving** – Make judgments and decisions and solve problems.\n* **Communication** – Communicate clearly.\n* **Creativity and Innovation** – Show evidence of creativity.`;
-
-            // Logic to conditionally render Pathway
-            let pathwaySection = "";
-            if (pathway) {
-                pathwaySection = `**CAREER PATHWAY**\n${pathway}\n\n`;
-            }
-
-            // Using HTML comments to force breaks if pure CSS classes fail in some renderers, but sticking to div class injection is best
-            return `You are an expert writer for DECA competitive events. Your goal is to generate a role play that looks IDENTICAL to an official DECA 2025 event sheet.\n\n` +
-            `**INPUTS:**\nCluster: ${cluster}\nEvent: ${eventName}\nPathway: ${pathway}\nInstructional Area: ${area}\n\n` +
-            `**STRICT OUTPUT FORMAT:**\n` +
-            `\n` +
-            `# ${eventName.toUpperCase()}\n` +
-            `**CAREER CLUSTER**\n${cluster}\n\n` +
-            pathwaySection +
-            `**INSTRUCTIONAL AREA**\n${area}\n\n` +
-            `---\n\n` +
-            `## PARTICIPANT INSTRUCTIONS\n` +
-            `${participantInstructions}\n\n` +
-            `## 21st CENTURY SKILLS\n` +
-            `${skills21}\n\n` +
-            `## PERFORMANCE INDICATORS\n` +
-            `${piList}\n` + 
-            `(Generate exactly ${piCountText} PIs. ${areaLimitText} must be from ${area})\n\n` +
-            // INJECT PAGE BREAK HERE FOR PAGE 2
-            `<div class="print-break"></div>\n\n` +
-            `## EVENT SITUATION\n` +
-            `You are to assume the role of [Role Title] at [Company Name], a [Company Description]. The judge is to assume the role of [Judge Role Title] at [Company Name].\n\n` +
-            `[Paragraph 1: Detailed background of the business, current market situation, or specific project context. Be specific about the industry.]\n\n` +
-            `[Paragraph 2: The specific problem, conflict, or opportunity that needs addressing. Why is this meeting happening now?]\n\n` +
-            `[Paragraph 3: The specific task. What must the participant explain, propose, or resolve?]\n\n` +
-            `You will be meeting with the [Judge Role Title] in their office. The meeting will begin with your presentation.\n\n` +
-            // INJECT PAGE BREAK HERE FOR PAGE 3
-            `<div class="print-break"></div>\n\n` +
-            `## JUDGE'S INSTRUCTIONS\n` +
-            `**DIRECTIONS, INSTRUCTIONS, AND PROCEDURES**\n` +
-            `* Observe the participant's presentation.\n* Do not interrupt the participant's presentation.\n* You may ask questions after the participant has finished.\n\n` +
-            `**JUDGE'S EVALUATION INSTRUCTIONS**\n` +
-            `Evaluate the participant on the following Performance Indicators:\n` +
-            `1. **[Indicator 1]:** Did the participant...?\n... (Match PIs above)\n\n` +
-            `**SUGGESTED QUESTIONS**\n` +
-            `1. [Question]\n2. [Question]\n3. [Question]`;
-        }
-
-        async function callGeminiAPI(prompt) {
-            // Round-robin selection
-            for (let i = 0; i < apiKeys.length; i++) {
                 try {
-                    const key = apiKeys[currentKeyIndex];
+                    const areas = AREAS_MAP[cluster];
+                    const prompt = `Generate ${count} multiple-choice questions for a DECA ${level} Exam (${cluster} - ${event}). 
+                    Focus on these areas: ${areas.join(', ')}.
+                    Return strictly valid JSON array. Each object: { "text": "Question?", "options": ["A","B","C","D"], "correctIndex": 0-3, "area": "Area Name", "explanation": "Why correct" }`;
+
+                    const data = await this.callGemini(prompt);
+                    
+                    if (!data) throw new Error("No data returned from API.");
+
+                    // Clean JSON string - Handle various Markdown code block formats
+                    let clean = data.trim();
+                    if (clean.startsWith('```json')) {
+                        clean = clean.replace(/^```json/, '').replace(/```$/, '');
+                    } else if (clean.startsWith('```')) {
+                         clean = clean.replace(/^```/, '').replace(/```$/, '');
+                    }
+                    
+                    this.state.questions = JSON.parse(clean);
+                    
+                    this.state.idx = 0;
+                    this.state.answers = {};
+                    this.state.flagged.clear();
+                    
+                    this.startTimer();
+                    this.renderQuestion();
+                    this.renderNav();
+                    document.getElementById('timer-box').classList.remove('hidden');
+                    this.showView('exam');
+
+                } catch(e) {
+                    console.error(e);
+                    errBox.textContent = "Generation Failed: " + e.message;
+                    errBox.classList.remove('hidden');
+                } finally {
+                    status.classList.add('hidden');
+                }
+            },
+
+            callGemini: async function(prompt) {
+                // Round Robin Logic
+                for (let attempt = 0; attempt < API_KEYS.length; attempt++) {
+                    const key = API_KEYS[currentKeyIndex];
                     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${key}`;
                     
-                    const response = await fetch(url, { 
-                        method: 'POST', 
-                        headers: {'Content-Type': 'application/json'}, 
-                        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }) 
-                    });
+                    try {
+                        const res = await fetch(url, {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                        });
 
-                    // If rate limited or quota exceeded, try next key
-                    if (response.status === 429 || response.status === 403 || response.status === 503) {
-                        console.warn(`Key ${currentKeyIndex} failed (Status ${response.status}). Rotating...`);
-                        currentKeyIndex = (currentKeyIndex + 1) % apiKeys.length;
-                        continue; // Go to next loop iteration
-                    }
+                        // Rotate on rate limit or quota errors
+                        if (res.status === 429 || res.status === 403 || res.status === 503) {
+                            console.warn(`Key ${currentKeyIndex} failed (Status ${res.status}). Rotating...`);
+                            currentKeyIndex = (currentKeyIndex + 1) % API_KEYS.length;
+                            continue;
+                        }
 
-                    if (!response.ok) { 
-                        const e = await response.json().catch(()=>({})); 
-                        throw new Error(e.error?.message || response.status); 
+                        if (!res.ok) {
+                            const err = await res.json().catch(() => ({}));
+                            throw new Error(err.error?.message || `API Status ${res.status}`);
+                        }
+                        
+                        const json = await res.json();
+                        if (!json.candidates || !json.candidates[0].content) {
+                            throw new Error("Invalid response structure from API");
+                        }
+                        return json.candidates[0].content.parts[0].text;
+
+                    } catch (e) {
+                        console.warn(`Attempt ${attempt + 1} failed: ${e.message}`);
+                        if (attempt === API_KEYS.length - 1) throw new Error("All API keys failed. Please check connection/quota.");
+                        currentKeyIndex = (currentKeyIndex + 1) % API_KEYS.length; // Rotate for next attempt
                     }
+                }
+            },
+
+            // --- RUNTIME ---
+            startTimer: function() {
+                clearInterval(this.state.timerInt);
+                this.state.timer = 90 * 60;
+                this.state.timerInt = setInterval(() => {
+                    this.state.timer--;
+                    let m = Math.floor(this.state.timer/60);
+                    let s = this.state.timer%60;
+                    document.getElementById('timer-display').textContent = `${m}:${s<10?'0'+s:s}`;
+                    if(this.state.timer <= 0) this.submit();
+                }, 1000);
+            },
+
+            renderQuestion: function() {
+                const q = this.state.questions[this.state.idx];
+                document.getElementById('q-area').textContent = q.area;
+                document.getElementById('q-num').textContent = this.state.idx + 1;
+                document.getElementById('q-total').textContent = this.state.questions.length;
+                document.getElementById('q-text').textContent = q.text;
+
+                const con = document.getElementById('q-options');
+                con.innerHTML = "";
+                q.options.forEach((opt, i) => {
+                    const div = document.createElement('div');
+                    const isSel = this.state.answers[this.state.idx] === i;
+                    div.className = `option-card p-4 border rounded-lg cursor-pointer flex gap-3 items-center border-slate-200 bg-white ${isSel ? 'selected' : ''}`;
+                    div.innerHTML = `<div class="w-6 h-6 rounded border flex items-center justify-center text-xs font-bold ${isSel ? 'bg-blue-600 text-white border-blue-600' : 'text-slate-400'}">${String.fromCharCode(65+i)}</div><span>${opt}</span>`;
+                    div.onclick = () => { this.state.answers[this.state.idx] = i; this.renderQuestion(); this.renderNav(); };
+                    con.appendChild(div);
+                });
+
+                // Flag
+                const isFlg = this.state.flagged.has(this.state.idx);
+                document.getElementById('btn-flag').className = isFlg ? "text-red-500" : "text-slate-300 hover:text-red-500";
+            },
+
+            renderNav: function() {
+                const grid = document.getElementById('nav-grid');
+                grid.innerHTML = "";
+                this.state.questions.forEach((_, i) => {
+                    const div = document.createElement('div');
+                    let cls = "h-8 w-full border rounded flex items-center justify-center text-xs font-bold cursor-pointer transition nav-item ";
                     
-                    const data = await response.json();
-                    if (!data.candidates) throw new Error("No content generated.");
-                    return data.candidates[0].content.parts[0].text;
+                    if(i === this.state.idx) cls += "active ";
+                    else cls += "bg-white border-slate-200 text-slate-500 hover:border-blue-300 ";
 
-                } catch (e) {
-                    // Only throw if we've tried all keys
-                    if (i === apiKeys.length - 1) throw e;
-                    console.error(e); // Log error but continue loop
+                    if(this.state.answers[i] !== undefined) cls += "answered ";
+                    if(this.state.flagged.has(i)) cls += "flagged ";
+
+                    div.className = cls;
+                    div.textContent = i+1;
+                    div.onclick = () => { this.state.idx = i; this.renderQuestion(); this.showView('exam'); };
+                    grid.appendChild(div);
+                });
+            },
+
+            nav: function(dir) {
+                const n = this.state.idx + dir;
+                if(n >= 0 && n < this.state.questions.length) {
+                    this.state.idx = n;
+                    this.renderQuestion();
+                    this.renderNav();
                 }
-            }
-        }
-        
-        async function runToolQuery(prompt) {
-            try {
-                const r = await callGeminiAPI(prompt);
-                if (r) {
-                    document.getElementById('toolContent').innerHTML = marked.parse(r);
-                    document.getElementById('toolLoader').classList.add('hidden');
+            },
+
+            toggleFlag: function() {
+                const i = this.state.idx;
+                this.state.flagged.has(i) ? this.state.flagged.delete(i) : this.state.flagged.add(i);
+                this.renderQuestion();
+                this.renderNav();
+            },
+
+            cancelExam: function() {
+                if(confirm("Exit exam? Progress will be lost.")) {
+                    this.state.questions = [];
+                    this.state.answers = {};
+                    clearInterval(this.state.timerInt);
+                    document.getElementById('timer-box').classList.add('hidden');
+                    this.showView('config');
+                }
+            },
+
+            // --- REVIEW & SUBMIT ---
+            showReview: function() {
+                this.showView('review');
+                const grid = document.getElementById('review-grid');
+                grid.innerHTML = "";
+                this.state.questions.forEach((q, i) => {
+                    const ans = this.state.answers[i] !== undefined;
+                    const flg = this.state.flagged.has(i);
+                    const d = document.createElement('div');
+                    d.className = "bg-white p-4 rounded-lg border border-slate-200 shadow-sm flex justify-between items-center cursor-pointer hover:border-blue-400";
+                    d.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <span class="font-bold text-slate-500 w-6">#${i+1}</span>
+                            <span class="text-xs uppercase text-slate-400 font-bold truncate w-24">${q.area}</span>
+                        </div>
+                        <div class="flex gap-2 text-sm">
+                            ${flg ? '<i class="fas fa-flag text-red-500"></i>' : ''}
+                            ${ans ? '<i class="fas fa-check-circle text-green-500"></i>' : '<span class="text-orange-500 font-bold text-[10px] bg-orange-50 px-2 rounded">SKIP</span>'}
+                        </div>
+                    `;
+                    d.onclick = () => { this.state.idx = i; this.showView('exam'); this.renderQuestion(); };
+                    grid.appendChild(d);
+                });
+            },
+
+            resume: function() { this.showView('exam'); },
+
+            submit: function() {
+                if(!confirm("Submit Exam?")) return;
+                
+                clearInterval(this.state.timerInt);
+                document.getElementById('timer-box').classList.add('hidden');
+                
+                // Grade
+                let correct = 0;
+                const details = this.state.questions.map((q, i) => {
+                    const u = this.state.answers[i];
+                    const right = u === q.correctIndex;
+                    if(right) correct++;
+                    return { ...q, user: u, correct: right };
+                });
+                
+                const score = Math.round((correct / this.state.questions.length) * 100);
+                
+                // Display
+                document.getElementById('res-score').textContent = score + "%";
+                document.getElementById('res-detail').textContent = `${correct}/${this.state.questions.length} Correct`;
+                
+                const con = document.getElementById('res-breakdown');
+                con.innerHTML = "";
+                details.forEach((d, i) => {
+                    const div = document.createElement('div');
+                    div.className = `p-6 bg-white rounded-xl border-l-4 shadow-sm ${d.correct ? 'border-green-500' : 'border-red-500'}`;
+                    div.innerHTML = `
+                        <div class="flex justify-between mb-2">
+                            <span class="text-[10px] font-bold uppercase text-slate-400 tracking-wide">${d.area}</span>
+                            ${d.correct ? '<span class="text-green-600 font-bold text-xs">CORRECT</span>' : '<span class="text-red-600 font-bold text-xs">INCORRECT</span>'}
+                        </div>
+                        <p class="font-bold text-slate-800 mb-3">${i+1}. ${d.text}</p>
+                        <div class="space-y-1 mb-3 text-sm">
+                            ${d.options.map((o, idx) => `
+                                <div class="p-2 rounded ${idx === d.correctIndex ? 'bg-green-100 text-green-800 font-bold' : (idx === d.user ? 'bg-red-100 text-red-800 line-through' : 'text-slate-500')}">
+                                    ${String.fromCharCode(65+idx)}) ${o}
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div class="bg-slate-50 p-3 rounded text-xs text-slate-600 border border-slate-100">
+                            <strong>Explanation:</strong> ${d.explanation}
+                        </div>
+                    `;
+                    con.appendChild(div);
+                });
+
+                // Save
+                if(window.saveExam) {
+                    window.saveExam({
+                        student: this.state.meta.name,
+                        event: this.state.meta.event,
+                        score: score,
+                        details: details // Save for analytics
+                    });
+                }
+
+                this.showView('results');
+            },
+
+            // --- PRINT/PDF ---
+            downloadBlank: function() {
+                const el = document.createElement('div');
+                el.innerHTML = `
+                    <div style="padding:40px; font-family:sans-serif;">
+                        <h1 style="text-align:center; font-weight:bold; font-size:24px; margin-bottom:10px">DECA ${this.state.meta.event} Exam</h1>
+                        <p style="text-align:center; margin-bottom:30px">Name: ____________________ | Score: ____ / ${this.state.questions.length}</p>
+                        ${this.state.questions.map((q, i) => `
+                            <div style="margin-bottom:20px; page-break-inside: avoid;">
+                                <p style="font-weight:bold; font-size:14px; margin-bottom:5px">${i+1}. ${q.text}</p>
+                                <div style="margin-left:15px; font-size:12px;">
+                                    ${q.options.map((o, idx) => `<div style="margin-bottom:2px">___ ${String.fromCharCode(65+idx)}) ${o}</div>`).join('')}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                html2pdf().set({ margin:0.5, filename:`${this.state.meta.event}_Exam.pdf`}).from(el).save();
+            },
+
+            printResults: function() { window.print(); },
+
+            // --- ADMIN ---
+            toggleAdmin: function() {
+                if(document.getElementById('view-admin').classList.contains('hidden')) {
+                    this.showView('admin');
+                    document.getElementById('admin-login').classList.remove('hidden');
+                    document.getElementById('admin-dash').classList.add('hidden');
                 } else {
-                    throw new Error("No content returned from AI.");
+                    this.showView('config');
                 }
-            } catch(e) {
-                document.getElementById('toolContent').innerHTML = `<p class="text-red-500">Error: ${e.message}</p>`;
-                document.getElementById('toolLoader').classList.add('hidden');
+            },
+
+            checkAdmin: function() {
+                if(document.getElementById('admin-pass').value === "deca") {
+                    document.getElementById('admin-login').classList.add('hidden');
+                    document.getElementById('admin-dash').classList.remove('hidden');
+                    this.loadAdmin();
+                } else {
+                    document.getElementById('adminError').classList.remove('hidden');
+                }
+            },
+
+            loadAdmin: async function() {
+                const tb = document.getElementById('admin-table');
+                tb.innerHTML = "<tr><td colspan='3' class='p-4 text-center'>Loading...</td></tr>";
+                const data = await window.loadSubmissions();
+                tb.innerHTML = "";
+                data.forEach(r => {
+                    const tr = document.createElement('tr');
+                    tr.className = "bg-white border-b hover:bg-slate-50";
+                    tr.innerHTML = `<td class="px-4 py-2 font-bold">${r.student}</td><td class="px-4 py-2 text-xs">${r.event}</td><td class="px-4 py-2 font-mono text-blue-600">${r.score}%</td>`;
+                    tb.appendChild(tr);
+                });
             }
-        }
+        };
+
+        // Start
+        app.init();
     </script>
 </body>
 </html>
